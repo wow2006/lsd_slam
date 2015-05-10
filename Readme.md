@@ -33,12 +33,13 @@ Building under Ubuntu
 2. Install G2O debug versions of the lib
 
     a. run the following inside the build folder so debug is enabled and the libs build accordingly
-
+	```
          cmake -DCMAKE_BUILD_TYPE=Debug .. 
 	
 	 make
 
 	 sudo make install
+	```
 
 3. under lsd_slam source, create a folder named as build
 
