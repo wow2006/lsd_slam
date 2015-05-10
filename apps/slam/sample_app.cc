@@ -29,7 +29,8 @@ int main(int argc, char** argv) {
 
 	std::string calib_fn = std::string(LsdSlam_DIR)
 			+ "/data/out_camera_data.xml";
-	CvCapture* capture = cvCaptureFromCAM(cameraId); //Capture using any camera connected to your system
+	CvCapture* capture = cvCaptureFromCAM(cameraId); //Capture using the camera identified by cameraId
+													 // camera id is 0 for /dev/video0, 1 for /dev/video1 etc
 
 	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);
 	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
