@@ -7,7 +7,7 @@
 #include "util/settings.h"
 #include "util/global_funcs.h"
 
-#include "util/Undistorter.h"
+#include "util/undistorter.h"
 #include "io_wrapper/OpenCVImageStreamThread.h"
 #include "slam_system.h"
 #include "DebugOutput3DWrapper.h"
