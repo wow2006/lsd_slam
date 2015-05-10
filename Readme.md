@@ -39,7 +39,8 @@ Building under Ubuntu
 	sudo make install
 	```
 
-3. under lsd_slam source, create a folder named as build
+3. under lsd_slam source, create a folder
+	```mkdir build```
 
 4. ```cd build```
 
