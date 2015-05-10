@@ -25,14 +25,21 @@ For windows build, please follow instructions from [Windows build](WindowsBuildI
 TBA
 
 ## Linux (requiring gcc4.7+)
+
 Building under Ubuntu
+
 1. Install G2O
+
 2. Install G2O debug versions of the lib
     a. run the following inside the build folder so debug is enabled and the libs build accordingly
          cmake -DCMAKE_BUILD_TYPE=Debug .. 
+
 3. under lsd_slam source, create a folder named as build
+
 4. cd build
+
 5. cmake ..
+
 6. make -j4
 
 This will build lsd_slam as a lib and also build the sample_app under LSD_SLAM_SOURCE/bin
