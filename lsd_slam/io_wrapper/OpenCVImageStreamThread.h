@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "io_wrapper\notify_buffer.h"
-#include "io_wrapper\timestamped_object.h"
-#include "io_wrapper\input_image_stream.h"
+#include "io_wrapper/notify_buffer.h"
+#include "io_wrapper/timestamped_object.h"
+#include "io_wrapper/input_image_stream.h"
 
 
 //#include <sensor_msgs/image_encodings.h>
@@ -30,7 +30,7 @@
 //#include <sensor_msgs/CameraInfo.h>
 //#include <geometry_msgs/PoseStamped.h>
 
-#include "util/Undistorter.h"
+#include "util/undistorter.h"
 #include <cv.h>
 #include <highgui.h>
 

@@ -19,8 +19,8 @@
 */
 
 #include "DebugOutput3DWrapper.h"
-#include "lsd_slam\util\sophus_util.h"
-#include "lsd_slam\util\settings.h"
+#include "lsd_slam/util/sophus_util.h"
+#include "lsd_slam/util/settings.h"
 
 //#include "lsd_slam_viewer/keyframeGraphMsg.h"
 //#include "lsd_slam_viewer/keyframeMsg.h"
@@ -29,7 +29,7 @@
 #include "lsd_slam/global_mapping/key_frame_graph.h"
 #include "sophus/sim3.hpp"
 #include "lsd_slam/global_mapping/g2o_type_sim3_sophus.h"
-#include <opencv\highgui.h>
+#include <opencv/highgui.h>
 
 namespace lsd_slam
 {

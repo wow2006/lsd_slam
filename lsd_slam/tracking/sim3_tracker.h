@@ -23,7 +23,7 @@
 #include "util/settings.h"
 #include "util/eigen_core_include.h"
 #include "util/sophus_util.h"
-#include "Tracking/least_squares.h"
+#include "tracking/least_squares.h"
 
 
 namespace lsd_slam

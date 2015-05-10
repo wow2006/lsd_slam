@@ -31,7 +31,7 @@
 #include "util/global_funcs.h"
 
 #include <iostream>
-#include <opencv\highgui.h>
+#include <opencv/highgui.h>
 
 namespace lsd_slam
 {

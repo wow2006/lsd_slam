@@ -18,7 +18,7 @@
 * along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "io_wrapper\image_display.h"
+#include "io_wrapper/image_display.h"
 
 #include <opencv2/highgui/highgui.hpp>
 
