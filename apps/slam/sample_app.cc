@@ -15,28 +15,38 @@
 using namespace std;
 using namespace lsd_slam;
 char key;
-//PATH=C:\projects\uni\dissertation\Libraries\g2o\install\bin;C:\projects\uni\dissertation\Libraries\opencv\x86\vc12\bin;%PATH%
-int main() {
+
+int main(int argc, char** argv) {
+	if (argc < 2) {
+		printf(
+				"Usage: sample_app <camera id>\ncamera id is 0 /dev/video0, 1 for /dev/video1 etc.\n");
+		exit(1);
+	}
+
+	int cameraId = atoi(argv[1]);
+
 	cvNamedWindow("Camera_Output_Undist", 1); //Create window
 
-  std::string calib_fn = std::string(LsdSlam_DIR) + "/data/out_camera_data.xml";
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY); //Capture using any camera connected to your system
+	std::string calib_fn = std::string(LsdSlam_DIR)
+			+ "/data/out_camera_data.xml";
+	CvCapture* capture = cvCaptureFromCAM(cameraId); //Capture using any camera connected to your system
 
-  cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);
-  cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
+	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);
+	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
 	OpenCVImageStreamThread* inputStream = new OpenCVImageStreamThread();
-  inputStream->setCalibration(calib_fn);
+	inputStream->setCalibration(calib_fn);
 	inputStream->setCameraCapture(capture);
 	inputStream->run();
 
-	Output3DWrapper* outputWrapper = new DebugOutput3DWrapper(inputStream->width(), inputStream->height());
+	Output3DWrapper* outputWrapper = new DebugOutput3DWrapper(
+			inputStream->width(), inputStream->height());
 	LiveSLAMWrapper slamNode(inputStream, outputWrapper);
-	
+
 	IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
-  printf("wh(%d, %d)\n", frame->width, frame->height);
+	printf("wh(%d, %d)\n", frame->width, frame->height);
 	cv::Mat mymat = cv::Mat(frame, true);
 	cv::Mat tracker_display = cv::Mat::ones(640, 480, CV_8UC3);
-	cv::circle(mymat, cv::Point(100, 100), 20, cv::Scalar(255, 1, 0),5);
+	cv::circle(mymat, cv::Point(100, 100), 20, cv::Scalar(255, 1, 0), 5);
 	cv::imshow("Camera_Output_Undist", mymat);
 
 	slamNode.Loop();
