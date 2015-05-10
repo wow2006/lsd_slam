@@ -26,6 +26,22 @@ TBA
 
 ## Linux (requiring gcc4.7+)
 Building under Ubuntu
+1. Install G2O
+2. Install G2O debug versions of the lib
+    a. run the following inside the build folder so debug is enabled and the libs build accordingly
+         cmake -DCMAKE_BUILD_TYPE=Debug .. 
+3. under lsd_slam source, create a folder named as build
+4. cd build
+5. cmake ..
+6. make -j4
+
+This will build lsd_slam as a lib and also build the sample_app under LSD_SLAM_SOURCE/bin
+
+Run the sample with
+LSD_SLAM_SOURCE/bin/sample_app
+
+The default build will basically build with the video device to /dev/video0 which would be the built in web cam in most machines if its a laptop.
+
 
 # License
 LSD-SLAM is licensed under the GNU General Public License Version 3 (GPLv3), see http://www.gnu.org/licenses/gpl.html.
