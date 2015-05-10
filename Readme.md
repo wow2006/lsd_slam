@@ -25,7 +25,7 @@ For windows build, please follow instructions from [Windows build](WindowsBuildI
 TBA
 
 ## Linux (requiring gcc4.7+)
-TBA
+Building under Ubuntu
 
 # License
 LSD-SLAM is licensed under the GNU General Public License Version 3 (GPLv3), see http://www.gnu.org/licenses/gpl.html.
