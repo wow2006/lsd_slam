@@ -52,11 +52,12 @@ This will build lsd_slam as a lib and also build the sample_app under LSD_SLAM_S
 
 Run the sample with
 ```
-LSD_SLAM_SOURCE/bin/sample_app
+LSD_SLAM_SOURCE/bin/sample_app <video device id>
+
+eg., to run with the video device /dev/video0
+
+LSD_SLAM_SOURE/bin/sample_app 0
 ```
-
-The default build will basically build with the video device to /dev/video0 which would be the built in web cam in most machines if its a laptop.
-
 
 # License
 LSD-SLAM is licensed under the GNU General Public License Version 3 (GPLv3), see http://www.gnu.org/licenses/gpl.html.
