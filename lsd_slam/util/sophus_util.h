@@ -69,8 +69,8 @@ inline SE3 se3FromSim3(const Sim3& sim3)
 extern template class Eigen::Quaternion<float>;
 extern template class Eigen::Quaternion<double>;
 
-extern template class Sophus::SE3Group<float, 0>;
-extern template class Sophus::SE3Group<double, 0>;
+extern template class Sophus::SE3<float, 0>;
+extern template class Sophus::SE3<double, 0>;
 
-extern template class Sophus::Sim3Group<float, 0>;
-extern template class Sophus::Sim3Group<double, 0>;
+extern template class Sophus::Sim3<float, 0>;
+extern template class Sophus::Sim3<double, 0>;

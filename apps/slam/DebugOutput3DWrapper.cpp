@@ -19,17 +19,19 @@
 */
 
 #include "DebugOutput3DWrapper.h"
-#include "lsd_slam/util/sophus_util.h"
-#include "lsd_slam/util/settings.h"
+#include "util/sophus_util.h"
+#include "util/settings.h"
 
 //#include "lsd_slam_viewer/keyframeGraphMsg.h"
 //#include "lsd_slam_viewer/keyframeMsg.h"
 
-#include "lsd_slam/model/frame.h"
-#include "lsd_slam/global_mapping/key_frame_graph.h"
+#include "model/frame.h"
+#include "global_mapping/key_frame_graph.h"
 #include "sophus/sim3.hpp"
-#include "lsd_slam/global_mapping/g2o_type_sim3_sophus.h"
+#include "global_mapping/g2o_type_sim3_sophus.h"
 #include <opencv/highgui.h>
+#include <opencv2/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace lsd_slam
 {

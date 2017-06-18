@@ -1,7 +1,12 @@
 #include <iostream>
-#include <cv.h>
-#include <highgui.h>
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
 
+#include <sophus/geometry.hpp>
+#include <eigen3/Eigen/Geometry>
 #include "live_slam_wrapper.h"
 
 #include "util/settings.h"
@@ -27,7 +32,7 @@ int main(int argc, char** argv) {
 
 	cvNamedWindow("Camera_Output_Undist", 1); //Create window
 
-	std::string calib_fn = std::string(LsdSlam_DIR)
+    std::string calib_fn = std::string("")
 			+ "/data/out_camera_data.xml";
 	CvCapture* capture = cvCaptureFromCAM(cameraId); //Capture using the camera identified by cameraId
 													 // camera id is 0 for /dev/video0, 1 for /dev/video1 etc
@@ -45,7 +50,7 @@ int main(int argc, char** argv) {
 
 	IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
 	printf("wh(%d, %d)\n", frame->width, frame->height);
-	cv::Mat mymat = cv::Mat(frame, true);
+    cv::Mat mymat = cv::cvarrToMat(frame);
 	cv::Mat tracker_display = cv::Mat::ones(640, 480, CV_8UC3);
 	cv::circle(mymat, cv::Point(100, 100), 20, cv::Scalar(255, 1, 0), 5);
 	cv::imshow("Camera_Output_Undist", mymat);

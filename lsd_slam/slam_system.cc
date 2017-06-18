@@ -36,6 +36,7 @@
 #include "model/frame_memory.h"
 
 #include "util/snprintf.h"
+#include "util/sophus.hpp"
 
 #include <deque>
 #include <cstdarg>

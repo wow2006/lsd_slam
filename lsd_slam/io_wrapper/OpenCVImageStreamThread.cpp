@@ -117,15 +117,15 @@ void OpenCVImageStreamThread::operator()()
 	{
 		TimestampedMat bufferItem;
 		bufferItem.timestamp = Timestamp::now();
-		IplImage* frame = cvQueryFrame(capture);
+        auto frame = cv::cvarrToMat(cvQueryFrame(capture));
 		if (undistorter != 0)
 		{
 			assert(undistorter->isValid());
-			undistorter->undistort(frame, bufferItem.data);
+            undistorter->undistort(frame, bufferItem.data);
 		}
 		else
 		{
-			bufferItem.data = frame;
+            bufferItem.data = frame;
 		}
 		//bufferItem.data = cv::Mat(frame, true);
 		imageBuffer->pushBack(bufferItem);

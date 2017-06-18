@@ -2,10 +2,8 @@
 
 FIND_PATH(G2O_INCLUDE_DIR g2o/core/base_vertex.h
   ${G2O_ROOT}/include
-  ${G2O_ROOT}
   $ENV{G2O_ROOT}/include
   $ENV{G2O_ROOT}
-  ${G2O_ROOT}
   /usr/local/include
   /usr/include
   /opt/local/include
@@ -43,7 +41,7 @@ MACRO(FIND_G2O_LIBRARY MYLIBRARY MYLIBRARYNAME)
     /sw/local/lib
     /sw/lib
     )
-
+  
   FIND_LIBRARY(${MYLIBRARY}
     NAMES "g2o_${MYLIBRARYNAME}"
     PATHS
@@ -67,13 +65,13 @@ MACRO(FIND_G2O_LIBRARY MYLIBRARY MYLIBRARYNAME)
     /sw/local/lib
     /sw/lib
     )
-
+  
   IF(NOT ${MYLIBRARY}_DEBUG)
     IF(MYLIBRARY)
       SET(${MYLIBRARY}_DEBUG ${MYLIBRARY})
     ENDIF(MYLIBRARY)
   ENDIF( NOT ${MYLIBRARY}_DEBUG)
-
+  
 ENDMACRO(FIND_G2O_LIBRARY LIBRARY LIBRARYNAME)
 
 # Find the core elements
@@ -87,7 +85,6 @@ FIND_G2O_LIBRARY(G2O_CLI_LIBRARY cli)
 FIND_G2O_LIBRARY(G2O_SOLVER_CHOLMOD solver_cholmod)
 FIND_G2O_LIBRARY(G2O_SOLVER_CSPARSE solver_csparse)
 FIND_G2O_LIBRARY(G2O_SOLVER_CSPARSE_EXTENSION csparse_extension)
-FIND_G2O_LIBRARY(G2O_EXT_CSPARSE ext_csparse)
 FIND_G2O_LIBRARY(G2O_SOLVER_DENSE solver_dense)
 FIND_G2O_LIBRARY(G2O_SOLVER_PCG solver_pcg)
 FIND_G2O_LIBRARY(G2O_SOLVER_SLAM2D_LINEAR solver_slam2d_linear)
@@ -102,9 +99,6 @@ FIND_G2O_LIBRARY(G2O_TYPES_SCLAM2D types_sclam2d)
 FIND_G2O_LIBRARY(G2O_TYPES_SIM3 types_sim3)
 FIND_G2O_LIBRARY(G2O_TYPES_SLAM2D types_slam2d)
 FIND_G2O_LIBRARY(G2O_TYPES_SLAM3D types_slam3d)
-
-# Find simulator library
-FIND_G2O_LIBRARY(G2O_SIMULATOR simulator)
 
 # G2O solvers declared found if we found at least one solver
 SET(G2O_SOLVERS_FOUND "NO")

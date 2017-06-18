@@ -25,6 +25,7 @@
 
 #include "slam_system.h"
 
+#include <Eigen/src/Geometry/Quaternion.h>
 #include "io_wrapper/image_display.h"
 #include "io_wrapper/output_3d_wrapper.h"
 #include "io_wrapper/input_image_stream.h"
@@ -147,7 +148,7 @@ void LiveSLAMWrapper::newImageCallback(const cv::Mat& img, Timestamp imgTime)
 
 void LiveSLAMWrapper::logCameraPose(const SE3& camToWorld, double time)
 {
-	Sophus::Quaternionf quat = camToWorld.unit_quaternion().cast<float>();
+    auto quat = camToWorld.unit_quaternion().cast<float>();
 	Eigen::Vector3f trans = camToWorld.translation().cast<float>();
 
 	char buffer[1000];

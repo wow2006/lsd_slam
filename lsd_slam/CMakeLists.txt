@@ -1,28 +1,61 @@
-cmake_minimum_required(VERSION 2.8.9)
-project(lsd_slam)
+set(lsd_slam_src live_slam_wrapper.cc slam_system.cc)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# adding depth_estimation dir
+list(APPEND lsd_slam_src
+    depth_estimation/depth_map.cc
+    depth_estimation/depth_map_pixel_hypothesis.cc)
+# adding global_mapping dir
+list(APPEND lsd_slam_src
+    global_mapping/fab_map.cc
+    global_mapping/g2o_type_sim3_sophus.cc
+    global_mapping/key_frame_graph.cc
+    global_mapping/trackable_key_frame_search.cc)
+# adding io_wrapper dir
+list(APPEND lsd_slam_src
+    io_wrapper/ImageDisplay_OpenCV.cc
+    io_wrapper/OpenCVImageStreamThread.cpp
+    io_wrapper/timestamp.cc)
+# adding model dir
+list(APPEND lsd_slam_src
+    model/frame.cc
+    model/frame_memory.cc
+    model/frame_pose_struct.cc)
+# adding tracking dir
+list(APPEND lsd_slam_src
+    tracking/least_squares.cc
+    tracking/relocalizer.cc
+    tracking/se3_tracker.cc
+    tracking/sim3_tracker.cc
+    tracking/tracking_reference.cc)
+# adding util dir
+list(APPEND lsd_slam_src
+    util/global_funcs.cc
+    util/settings.cc
+    util/sophus_util.cc
+    util/undistorter.cc)
 
-# Sources & headers ============================================================
-set(modules depth_estimation global_mapping io_wrapper model tracking util)
-set(lsd_slam_srcs)
-foreach(module ${modules})
-  file(GLOB ${module}_srcs ${CMAKE_CURRENT_SOURCE_DIR}/${module}/*.cc
-                           ${CMAKE_CURRENT_SOURCE_DIR}/${module}/*.cpp
-                           ${CMAKE_CURRENT_SOURCE_DIR}/${module}/*.h)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${module})
-  list(APPEND lsd_slam_srcs ${${module}_srcs})
-endforeach(module ${modules})
+add_library(lsd_slam ${lsd_slam_src})
 
-file(GLOB other_srcs ${CMAKE_CURRENT_SOURCE_DIR}/*.cc
-                     ${CMAKE_CURRENT_SOURCE_DIR}/*.h)
-list(APPEND lsd_slam_srcs ${other_srcs})
+target_include_directories(lsd_slam PUBLIC
+    "${CMAKE_CURRENT_LIST_DIR}"
+    "${EIGEN3_INCLUDE_DIR}"
+    "${CSPARSE_INCLUDE_DIR}"
+    "${Sophus_INCLUDE_DIR}")
 
-## the library
-set(lib_target lsd_slam)
-add_library(${lib_target} ${lsd_slam_srcs})
-set_property(TARGET ${lib_target} PROPERTY FOLDER "lsd_slam/libs")
+target_link_libraries(lsd_slam      PUBLIC
+    ${G2O_SOLVER_CHOLMOD}
+    ${G2O_SOLVER_CSPARSE}
+    ${G2O_SOLVER_CSPARSE_EXTENSION}
+    ${G2O_SOLVER_DENSE}
+    ${G2O_SOLVER_EIGEN}
+    ${G2O_TYPES_DATA}
+    ${G2O_TYPES_ICP}
+    ${G2O_STUFF_LIBRARY}
+    ${G2O_CORE_LIBRARY}
 
-target_link_libraries(${lib_target} ${LsdSlam_ALL_LIBRARIES})
-list(APPEND LsdSlam_ALL_LIBRARIES ${lib_target})
-lsd_slam_print_status("LsdSlam_ALL_LIBRARIES slam:${LsdSlam_ALL_LIBRARIES}")
+    ${OpenCV_LIBRARIES}
+    ${CSPARSE_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${Boost_LIBRARIES})
+
+set_target_properties(lsd_slam PROPERTIES CXX_STANDARD 14)

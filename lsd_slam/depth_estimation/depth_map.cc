@@ -1548,7 +1548,7 @@ inline float DepthMap::doLineStereo(
 	float incx = pClose[0] - pFar[0];
 	float incy = pClose[1] - pFar[1];
 	float eplLength = sqrt(incx*incx+incy*incy);
-	if(!eplLength > 0 || std::isinf(eplLength)) return -4;
+    if(!(eplLength > 0) || std::isinf(eplLength)) return -4;
 
 	if(eplLength > MAX_EPL_LENGTH_CROP)
 	{

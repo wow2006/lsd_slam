@@ -36,9 +36,9 @@
 template class Eigen::Quaternion<float>;
 template class Eigen::Quaternion<double>;
 
-template class Sophus::SE3Group<float, 0>;
-template class Sophus::SE3Group<double, 0>;
+template class Sophus::SE3<float, 0>;
+template class Sophus::SE3<double, 0>;
 
-template class Sophus::Sim3Group<float, 0>;
-template class Sophus::Sim3Group<double, 0>;
+template class Sophus::Sim3<float, 0>;
+template class Sophus::Sim3<double, 0>;
 

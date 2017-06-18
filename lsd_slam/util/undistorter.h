@@ -23,8 +23,6 @@
 
 #include <opencv2/core/core.hpp>
 
-
-
 namespace lsd_slam
 {
 
