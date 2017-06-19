@@ -1,88 +1,130 @@
+#include <string>
+#include <vector>
 #include <iostream>
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
 #include <opencv2/core.hpp>
-#include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
-#include <sophus/geometry.hpp>
 #include <eigen3/Eigen/Geometry>
-#include "live_slam_wrapper.h"
+#include <sophus/geometry.hpp>
 
-#include "util/settings.h"
-#include "util/global_funcs.h"
-
-#include "util/undistorter.h"
-#include "io_wrapper/OpenCVImageStreamThread.h"
 #include "slam_system.h"
+#include "live_slam_wrapper.h"
 #include "DebugOutput3DWrapper.h"
+#include "util/settings.h"
+#include "util/undistorter.h"
+#include "util/global_funcs.h"
+#include "io_wrapper/OpenCVImageStreamThread.h"
 
-using namespace std;
+#include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
+
 using namespace lsd_slam;
-char key;
 
-int main(int argc, char** argv) {
-	if (argc < 2) {
-		printf(
-				"Usage: sample_app <camera id>\ncamera id is 0 /dev/video0, 1 for /dev/video1 etc.\n");
-		exit(1);
-	}
+namespace fs = boost::filesystem;
 
-	int cameraId = atoi(argv[1]);
+auto getFiles(const std::string& _dir) {
+    auto output = std::vector<std::string>();
+    auto imagesPath = fs::path(_dir);
+    try {
+        if(fs::exists(imagesPath) &&  fs::is_directory(imagesPath)) {
+            std::cout << _dir << " directory exist!\n";
+            std::vector<fs::path> images;
+            std::copy(fs::directory_iterator(imagesPath),
+                      fs::directory_iterator(),
+                      std::back_inserter(images));
+            std::sort(std::begin(images), std::end(images),
+                      [](fs::path& it1, fs::path& it2) {
+                      return std::stoi(it1.stem().string()) < std::stoi(it2.stem().string());
+                      });
+            output.resize(images.size());
+            std::transform(std::begin(images), std::end(images), std::begin(output),
+                    [](const fs::path& _path) { return _path.string(); });
+        }
+    }
+    catch(const fs::filesystem_error& exp) {
+        std::cerr << exp.what() << '\n';
+    }
+  return output;
+}
 
-	cvNamedWindow("Camera_Output_Undist", 1); //Create window
+auto getIntrinsicMatrix(const std::string& _dir) {
+  cv::FileStorage inputFile(_dir, cv::FileStorage::READ | cv::FileStorage::FORMAT_JSON);
+  cv::Mat opencvK;
+  inputFile["IntrinsicMatrix"] >> opencvK;
 
-    std::string calib_fn = std::string("")
-			+ "/data/out_camera_data.xml";
-	CvCapture* capture = cvCaptureFromCAM(cameraId); //Capture using the camera identified by cameraId
-													 // camera id is 0 for /dev/video0, 1 for /dev/video1 etc
+  Eigen::Matrix3f K;
+  K << opencvK.at<float>(0, 0), opencvK.at<float>(0, 1), opencvK.at<float>(0, 2),
+       opencvK.at<float>(1, 0), opencvK.at<float>(1, 1), opencvK.at<float>(1, 2),
+       opencvK.at<float>(2, 0), opencvK.at<float>(2, 1), opencvK.at<float>(2, 2);
 
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, 640);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, 480);
-	OpenCVImageStreamThread* inputStream = new OpenCVImageStreamThread();
-	inputStream->setCalibration(calib_fn);
-	inputStream->setCameraCapture(capture);
-	inputStream->run();
+  return K;
+}
 
-	Output3DWrapper* outputWrapper = new DebugOutput3DWrapper(
-			inputStream->width(), inputStream->height());
-	LiveSLAMWrapper slamNode(inputStream, outputWrapper);
+namespace po = boost::program_options;
 
-	IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
-	printf("wh(%d, %d)\n", frame->width, frame->height);
-    cv::Mat mymat = cv::cvarrToMat(frame);
-	cv::Mat tracker_display = cv::Mat::ones(640, 480, CV_8UC3);
-	cv::circle(mymat, cv::Point(100, 100), 20, cv::Scalar(255, 1, 0), 5);
-	cv::imshow("Camera_Output_Undist", mymat);
+auto parseArgs(int argc, char** argv) {
+  std::string inputFile, outputFile, intrinsicFile;
 
-	slamNode.Loop();
+  po::options_description desc("LSD_SLAM input");
+  desc.add_options()
+      ("help", "")
+      ("input,i", po::value<std::string>(&inputFile)->required(), "")
+      ("output,o", po::value<std::string>(&outputFile)->required(), "")
+      ("intrinsic,k", po::value<std::string>(&intrinsicFile)->required(), "");
 
-	//Undistorter* undistorter = Undistorter::getUndistorterForFile("out_camera_data.xml");
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
 
-	//while (1){ //Create infinte loop for live streaming
-	//	IplImage* frame = cvQueryFrame(capture); //Create image frames from capture
-	//	TimestampedMat bufferItem;
-	//	bufferItem.timestamp = Timestamp::now();
-	//	
-	//	cv::Mat mymat = cv::Mat(frame, true);
+  if(vm.count("help")) {
+      std::cerr << desc << '\n';
+      std::exit(-1);
+  }
 
-	//	
-	//	undistorter->undistort(frame, mymat);
-	//    
-	//	cvShowImage("Camera_Output", frame); //Show image frames on created window
-	//	cv::imshow("Camera_Output_Undist", mymat);
-	//	key = cvWaitKey(10); //Capture Keyboard stroke
-	//	if (char(key) == 27){
-	//		break; //If you hit ESC key loop will break.
-	//	}
-	//}
+  return std::vector<std::string> {inputFile, outputFile, intrinsicFile};
+}
 
-	if (inputStream != nullptr)
-		delete inputStream;
-	if (outputWrapper != nullptr)
-		delete outputWrapper;
+int main(int argc, char **argv) {
+  auto inputFiles = parseArgs(argc, argv);
 
-	cvReleaseCapture(&capture); //Release capture.
-	//cvDestroyWindow("Camera_Output"); //Destroy Window
-	return 0;
+  // Get images in dir
+  auto files = getFiles(inputFiles[0]);
+  const std::string namedWindow = "sample_app";
+
+  // Read Intrinsic Matrix from Cap file
+  auto K = getIntrinsicMatrix(inputFiles[2]);
+
+  // Create Window
+  cv::namedWindow(namedWindow.c_str(), cv::WINDOW_NORMAL);
+
+  {
+    auto firstImage = cv::imread(files.front(), cv::IMREAD_GRAYSCALE);
+    // Read First Image
+    if(firstImage.empty()) {
+        std::cerr << "Can not found " << firstImage << '\n';
+        return -1;
+    }
+    cv::imshow(namedWindow.c_str(), firstImage);
+    cv::waitKey(100);
+
+    int width = firstImage.cols, height = firstImage.rows;
+    std::unique_ptr<SlamSystem> system(new SlamSystem(width, height, K, true));
+    int index = 0; double timeStamp = 0.0f;
+
+    system->randomInit(firstImage.data, timeStamp, index);
+    for(auto file : files) {
+        auto currentImage = cv::imread(file, cv::IMREAD_GRAYSCALE);
+        if(currentImage.empty())
+            continue;
+        cv::imshow(namedWindow.c_str(), currentImage);
+        cv::waitKey(100);
+        system->trackFrame(currentImage.data, index++, false, timeStamp += 0.03);
+    }
+    system->finalize();
+  }
+
+  cv::destroyWindow(namedWindow.c_str());
+
+  return 0;
 }

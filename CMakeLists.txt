@@ -13,7 +13,7 @@ find_package(Sophus  REQUIRED)
 find_package(Threads REQUIRED)
 set(Boost_USE_MULTITHREADED ON)
 find_package(Boost   REQUIRED
-    COMPONENTS date_time filesystem system thread)
+    COMPONENTS date_time filesystem system thread program_options)
 
 # Add lsd_slam library
 add_subdirectory(lsd_slam)
