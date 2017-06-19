@@ -1,8 +1,9 @@
 /**
 * This file is part of LSD-SLAM.
 *
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam> 
+* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
+* of Munich)
+* For more information see <http://vision.in.tum.de/lsdslam>
 *
 * LSD-SLAM is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -24,40 +25,41 @@
 #include "util/sophus_util.h"
 
 namespace cv {
-	class Mat;
+class Mat;
 }
 
-namespace lsd_slam
-{
+namespace lsd_slam {
 
 class Frame;
 
 class KeyFrameGraph;
 class Frame;
 
-
-
 /**
  * Virtual 3D display object.
  */
-class Output3DWrapper
-{
+class Output3DWrapper {
 public:
-	virtual ~Output3DWrapper() {};
+    virtual ~Output3DWrapper() {}
 
-	virtual void publishKeyframeGraph(KeyFrameGraph* graph) {};
+    virtual void publishKeyframeGraph(KeyFrameGraph* graph) {}
 
-	// publishes a keyframe. if that frame already existis, it is overwritten, otherwise it is added.
-	virtual void publishKeyframe(Frame* kf) {};
+    // publishes a keyframe. if that frame already existis, it is overwritten,
+    // otherwise it is added.
+    virtual void publishKeyframe(Frame* kf) {}
 
-	// published a tracked frame that did not become a keyframe (yet; i.e. has no depth data)
-	virtual void publishTrackedFrame(Frame* kf) {};
+    // published a tracked frame that did not become a keyframe (yet; i.e. has
+    // no depth data)
+    virtual void publishTrackedFrame(Frame* kf) {}
 
-	// publishes graph and all constraints, as well as updated KF poses.
-	virtual void publishTrajectory(std::vector<Eigen::Matrix<float, 3, 1>> trajectory, std::string identifier) {};
-	virtual void publishTrajectoryIncrement(Eigen::Matrix<float, 3, 1> pt, std::string identifier) {};
+    // publishes graph and all constraints, as well as updated KF poses.
+    virtual void publishTrajectory(
+        std::vector<Eigen::Matrix<float, 3, 1>> trajectory,
+        std::string identifier){}
 
-	virtual void publishDebugInfo(const Eigen::Matrix<float, 20, 1>& data) {};
+    virtual void publishTrajectoryIncrement(Eigen::Matrix<float, 3, 1> pt,
+                                            std::string identifier) {}
 
+    virtual void publishDebugInfo(const Eigen::Matrix<float, 20, 1>& data) {}
 };
 }

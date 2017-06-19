@@ -90,14 +90,17 @@ int main(int argc, char **argv) {
 
   // Get images in dir
   auto files = getFiles(inputFiles[0]);
-  const std::string namedWindow = "sample_app";
 
-  // Read Intrinsic Matrix from Cap file
-  auto K = getIntrinsicMatrix(inputFiles[2]);
+  auto undistorter = Undistorter::getUndistorterForFile(inputFiles[2].c_str());
+  float fx = undistorter->getK().at<double>(0, 0);
+  float fy = undistorter->getK().at<double>(1, 1);
+  float cx = undistorter->getK().at<double>(2, 0);
+  float cy = undistorter->getK().at<double>(2, 1);
 
-  // Create Window
-  cv::namedWindow(namedWindow.c_str(), cv::WINDOW_NORMAL);
-
+  int out_width  = undistorter->getOutputWidth();
+  int out_height = undistorter->getOutputHeight();
+  Sophus::Matrix3f K;
+  K << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0;
   {
     auto firstImage = cv::imread(files.front(), cv::IMREAD_GRAYSCALE);
     // Read First Image
@@ -105,26 +108,26 @@ int main(int argc, char **argv) {
         std::cerr << "Can not found " << firstImage << '\n';
         return -1;
     }
-    cv::imshow(namedWindow.c_str(), firstImage);
-    cv::waitKey(100);
 
     int width = firstImage.cols, height = firstImage.rows;
-    std::unique_ptr<SlamSystem> system(new SlamSystem(width, height, K, true));
+    std::unique_ptr<SlamSystem> system(new SlamSystem(out_width, out_height, K, true));
+    // make output wrapper. just set to zero if no output is required.
     int index = 0; double timeStamp = 0.0f;
 
-    system->randomInit(firstImage.data, timeStamp, index);
+    cv::Mat image = cv::Mat(height, width, CV_8U);
+    undistorter->undistort(firstImage, image);
+    system->randomInit(image.data, timeStamp, index);
+
     for(auto file : files) {
         auto currentImage = cv::imread(file, cv::IMREAD_GRAYSCALE);
+
         if(currentImage.empty())
             continue;
-        cv::imshow(namedWindow.c_str(), currentImage);
-        cv::waitKey(100);
-        system->trackFrame(currentImage.data, index++, false, timeStamp += 0.03);
-    }
-    system->finalize();
-  }
 
-  cv::destroyWindow(namedWindow.c_str());
+        undistorter->undistort(currentImage, image);
+        system->trackFrame(image.data, index++, false, timeStamp += 0.03);
+    }
+  }
 
   return 0;
 }

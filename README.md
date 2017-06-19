@@ -37,6 +37,23 @@ Thus, it needs c++11 supported compiler to build the code from source.
     chmod +x build.sh
     ./build.sh
 
+# Usage
+    sudo apt-get install unzip
+    wget http://vision.in.tum.de/mono/dataset/sequence_37.zip sequence_37.zip
+    unzip sequence_37.zip -d .
+    SAMPLE='$(pwd)/sequence_37'
+    cd build/Release/apps/slam
+    ./main_on_images -i $SAMPLE/images -o NO_OUTPUT_YET -k $SAMPLE/camera.txt
+
+# TODO
+- Implement new Output3DWrapper
+    - display tracking 
+    - display point cloud
+- Imporve performance
+- Export ply file
+- Add more Doc
+- Implement Docker Image
+
 # License
 LSD-SLAM is licensed under the GNU General Public License Version 3 (GPLv3), see http://www.gnu.org/licenses/gpl.html.
 
