@@ -106,14 +106,12 @@ KeyFrameGraph::~KeyFrameGraph()
 
 void KeyFrameGraph::addFrame(Frame* frame)
 {
+  frame->pose->isRegisteredToGraph = true;
+  FramePoseStruct* pose = frame->pose;
 
-	frame->pose->isRegisteredToGraph = true;
-	FramePoseStruct* pose = frame->pose;
-
-
-	allFramePosesMutex.lock();
-	allFramePoses.push_back(pose);
-	allFramePosesMutex.unlock();
+  allFramePosesMutex.lock();
+  allFramePoses.push_back(pose);
+  allFramePosesMutex.unlock();
 }
 
 void KeyFrameGraph::dumpMap(std::string folder)

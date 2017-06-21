@@ -1,8 +1,9 @@
 /**
 * This file is part of LSD-SLAM.
 *
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam> 
+* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
+* of Munich)
+* For more information see <http://vision.in.tum.de/lsdslam>
 *
 * LSD-SLAM is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,15 +20,11 @@
 */
 
 #include "util/settings.h"
-#include <opencv2/opencv.hpp>
 #include <boost/bind.hpp>
+#include <opencv2/opencv.hpp>
 
-
-
-namespace lsd_slam
-{
+namespace lsd_slam {
 RunningStats runningStats;
-
 
 bool autoRun = true;
 bool autoRunWithinFrame = true;
@@ -67,7 +64,6 @@ bool plotSim3TrackingIterationInfo = false;
 bool plotStereoImages = false;
 bool plotTracking = false;
 
-
 float freeDebugParam1 = 1;
 float freeDebugParam2 = 1;
 float freeDebugParam3 = 1;
@@ -78,7 +74,7 @@ float KFDistWeight = 4;
 float KFUsageWeight = 3;
 
 float minUseGrad = 5;
-float cameraPixelNoise2 = 4*4;
+float cameraPixelNoise2 = 4 * 4;
 float depthSmoothingFactor = 1;
 
 bool allowNegativeIdepths = true;
@@ -86,8 +82,6 @@ bool useMotionModel = false;
 bool useSubpixelStereo = true;
 bool multiThreading = true;
 bool useAffineLightningEstimation = true;
-
-
 
 bool useFabMap = false;
 bool doSlam = true;
@@ -100,63 +94,66 @@ int propagateKeyFrameDepthCount = 0;
 float loopclosureStrictness = 1.5;
 float relocalizationTH = 0.7;
 
-
-bool saveKeyframes =  false;
-bool saveAllTracked =  false;
-bool saveLoopClosureImages =  false;
+bool saveKeyframes = false;
+bool saveAllTracked = false;
+bool saveLoopClosureImages = false;
 bool saveAllTrackingStages = false;
 bool saveAllTrackingStagesInternal = false;
 
 bool continuousPCOutput = false;
 
-
 bool fullResetRequested = false;
 bool manualTrackingLossIndicated = false;
 
-
 std::string packagePath = "";
 
-
-void handleKey(char k)
-{
-	char kkk = k;
-	switch(kkk)
-	{
-	case 'a': case 'A':
-//		autoRun = !autoRun;		// disabled... only use for debugging & if you really, really know what you are doing
-		break;
-	case 's': case 'S':
-//		autoRunWithinFrame = !autoRunWithinFrame; 	// disabled... only use for debugging & if you really, really know what you are doing
-		break;
-	case 'd': case 'D':
-		debugDisplay = (debugDisplay+1)%6;
-		printf("debugDisplay is now: %d\n", debugDisplay);
-		break;
-	case 'e': case 'E':
-		debugDisplay = (debugDisplay-1+6)%6;
-		printf("debugDisplay is now: %d\n", debugDisplay);
-		break;
-	case 'o': case 'O':
-		onSceenInfoDisplay = !onSceenInfoDisplay;
-		break;
-	case 'r': case 'R':
-		printf("requested full reset!\n");
-		fullResetRequested = true;
-		break;
-	case 'm': case 'M':
-		printf("Dumping Map!\n");
-		dumpMap = true;
-		break;
-	case 'p': case 'P':
-		printf("Tracking all Map-Frames again!\n");
-		doFullReConstraintTrack = true;
-		break;
-	case 'l': case 'L':
-		printf("Manual Tracking Loss Indicated!\n");
-		manualTrackingLossIndicated = true;
-		break;
-	}
-
+void handleKey(char k) {
+  char kkk = k;
+  switch (kkk) {
+  case 'a':
+  case 'A':
+    //		autoRun = !autoRun;		// disabled... only use for debugging & if you
+    //really, really know what you are doing
+    break;
+  case 's':
+  case 'S':
+    //		autoRunWithinFrame = !autoRunWithinFrame; 	// disabled... only use
+    //for debugging & if you really, really know what you are doing
+    break;
+  case 'd':
+  case 'D':
+    debugDisplay = (debugDisplay + 1) % 6;
+    printf("debugDisplay is now: %d\n", debugDisplay);
+    break;
+  case 'e':
+  case 'E':
+    debugDisplay = (debugDisplay - 1 + 6) % 6;
+    printf("debugDisplay is now: %d\n", debugDisplay);
+    break;
+  case 'o':
+  case 'O':
+    onSceenInfoDisplay = !onSceenInfoDisplay;
+    break;
+  case 'r':
+  case 'R':
+    printf("requested full reset!\n");
+    fullResetRequested = true;
+    break;
+  case 'm':
+  case 'M':
+    printf("Dumping Map!\n");
+    dumpMap = true;
+    break;
+  case 'p':
+  case 'P':
+    printf("Tracking all Map-Frames again!\n");
+    doFullReConstraintTrack = true;
+    break;
+  case 'l':
+  case 'L':
+    printf("Manual Tracking Loss Indicated!\n");
+    manualTrackingLossIndicated = true;
+    break;
+  }
 }
-
 }
