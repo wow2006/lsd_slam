@@ -92,10 +92,10 @@ int main(int argc, char **argv) {
   auto files = getFiles(inputFiles[0]);
 
   auto undistorter = Undistorter::getUndistorterForFile(inputFiles[2].c_str());
-  float fx = undistorter->getK().at<float>(0, 0);
-  float fy = undistorter->getK().at<float>(1, 1);
-  float cx = undistorter->getK().at<float>(2, 0);
-  float cy = undistorter->getK().at<float>(2, 1);
+  float fx = undistorter->getK().at<double>(0, 0);
+  float fy = undistorter->getK().at<double>(1, 1);
+  float cx = undistorter->getK().at<double>(2, 0);
+  float cy = undistorter->getK().at<double>(2, 1);
 
   int out_width  = undistorter->getOutputWidth();
   int out_height = undistorter->getOutputHeight();
