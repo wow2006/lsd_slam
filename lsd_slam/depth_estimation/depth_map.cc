@@ -870,16 +870,20 @@ void DepthMap::regularizeDepthMap(bool removeOcclusions, int validityTH) {
 
 void DepthMap::initializeRandomly(Frame *new_frame) {
   activeKeyFramelock = new_frame->getActiveLock();
-  activeKeyFrame = new_frame;
-  activeKeyFrameImageData = activeKeyFrame->image(0);
+  activeKeyFrame     = new_frame;
+  // get level=0 data
+  activeKeyFrameImageData     = activeKeyFrame->image(0);
   activeKeyFrameIsReactivated = false;
 
   const float *maxGradients = new_frame->maxGradients();
 
+  // Set Init depth
   for (int y = 1; y < height - 1; y++) {
     for (int x = 1; x < width - 1; x++) {
       if (maxGradients[x + y * width] > MIN_ABS_GRAD_CREATE) {
+        // Get random depth
         float idepth = 0.5f + 1.0f * ((rand() % 100001) / 100000.0f);
+        // set currentDepth to random value
         currentDepthMap[x + y * width] =
             DepthMapPixelHypothesis(idepth, idepth, VAR_RANDOM_INIT_INITIAL,
                                     VAR_RANDOM_INIT_INITIAL, 20);

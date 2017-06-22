@@ -148,7 +148,7 @@ cv::Mat getVarRedGreenPlot(const float *idepthVar, const float *gray, int width,
       }
     }
 
-  delete idepthVarExt;
+  delete[] idepthVarExt;
   return res;
 }
 }

@@ -68,14 +68,20 @@ Undistorter *Undistorter::getUndistorterForFile(const char *configFilename) {
   if (l2 == "<opencv_storage>") {
     printf("found OpenCV camera model, building rectifier.\n");
     Undistorter *u = new UndistorterOpenCV(completeFileName.c_str());
-    if (!u->isValid())
-      return 0;
+    if (!u->isValid()){
+        delete u;
+        return 0;
+    }
+
     return u;
   } else {
     printf("found ATAN camera model, building rectifier.\n");
     Undistorter *u = new UndistorterPTAM(completeFileName.c_str());
-    if (!u->isValid())
-      return 0;
+    if (!u->isValid()){
+        delete u;
+        return 0;
+    }
+
     return u;
   }
 }

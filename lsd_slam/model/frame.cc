@@ -186,43 +186,44 @@ void Frame::setDepth(const DepthMapPixelHypothesis *newDepth) {
 
   boost::shared_lock<boost::shared_mutex> lock = getActiveLock();
   boost::unique_lock<boost::mutex> lock2(buildMutex);
-
+  //
   if (data.idepth[0] == 0)
-    data.idepth[0] = FrameMemory::getInstance().getFloatBuffer(data.width[0] *
-                                                               data.height[0]);
+    data.idepth[0] = FrameMemory::getInstance().getFloatBuffer(
+        data.width[0] * data.height[0]);
   if (data.idepthVar[0] == 0)
     data.idepthVar[0] = FrameMemory::getInstance().getFloatBuffer(
         data.width[0] * data.height[0]);
-
-  float *pyrIDepth = data.idepth[0];
+  // get pointer to idepth and idepthVar and end of idepth
+  float *pyrIDepth    = data.idepth[0];
   float *pyrIDepthVar = data.idepthVar[0];
   float *pyrIDepthMax = pyrIDepth + (data.width[0] * data.height[0]);
 
   float sumIdepth = 0;
-  int numIdepth = 0;
+  int numIdepth   = 0;
 
+  // iterate over level=0 idepth
   for (; pyrIDepth < pyrIDepthMax;
-       ++pyrIDepth, ++pyrIDepthVar, ++newDepth) //, ++ pyrRefID)
+       ++pyrIDepth, ++pyrIDepthVar, ++newDepth)
   {
     if (newDepth->isValid && newDepth->idepth_smoothed >= -0.05) {
-      *pyrIDepth = newDepth->idepth_smoothed;
+      *pyrIDepth    = newDepth->idepth_smoothed;
       *pyrIDepthVar = newDepth->idepth_var_smoothed;
 
       numIdepth++;
       sumIdepth += newDepth->idepth_smoothed;
     } else {
-      *pyrIDepth = -1;
+      *pyrIDepth    = -1;
       *pyrIDepthVar = -1;
     }
   }
 
   meanIdepth = sumIdepth / numIdepth;
-  numPoints = numIdepth;
+  numPoints  = numIdepth;
 
-  data.idepthValid[0] = true;
-  data.idepthVarValid[0] = true;
+  data.idepthValid[0]     = true;
+  data.idepthVarValid[0]  = true;
   release(IDEPTH | IDEPTH_VAR, true, true);
-  data.hasIDepthBeenSet = true;
+  data.hasIDepthBeenSet   = true;
   depthHasBeenUpdatedFlag = true;
 }
 
@@ -743,7 +744,7 @@ void Frame::buildIDepthAndIDepthVar(int level) {
   if (enablePrintDebugInfo && printFrameBuildDebugInfo)
     printf("CREATE IDepth lvl %d for frame %d\n", level, id());
 
-  int width = data.width[level];
+  int width  = data.width[level];
   int height = data.height[level];
 
   if (data.idepth[level] == 0)
@@ -755,66 +756,66 @@ void Frame::buildIDepthAndIDepthVar(int level) {
 
   int sw = data.width[level - 1];
 
-  const float *idepthSource = data.idepth[level - 1];
+  const float *idepthSource    = data.idepth[level - 1];
   const float *idepthVarSource = data.idepthVar[level - 1];
-  float *idepthDest = data.idepth[level];
-  float *idepthVarDest = data.idepthVar[level];
+  float *idepthDest            = data.idepth[level];
+  float *idepthVarDest         = data.idepthVar[level];
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
-      int idx = 2 * (x + y * sw);
+      int idx     = 2 * (x + y * sw);
       int idxDest = (x + y * width);
 
       float idepthSumsSum = 0;
-      float ivarSumsSum = 0;
-      int num = 0;
+      float ivarSumsSum   = 0;
+      int num             = 0;
 
       // build sums
       float ivar;
       float var = idepthVarSource[idx];
       if (var > 0) {
-        ivar = 1.0f / var;
-        ivarSumsSum += ivar;
+        ivar           = 1.0f / var;
+        ivarSumsSum   += ivar;
         idepthSumsSum += ivar * idepthSource[idx];
         num++;
       }
 
       var = idepthVarSource[idx + 1];
       if (var > 0) {
-        ivar = 1.0f / var;
-        ivarSumsSum += ivar;
+        ivar           = 1.0f / var;
+        ivarSumsSum   += ivar;
         idepthSumsSum += ivar * idepthSource[idx + 1];
         num++;
       }
 
       var = idepthVarSource[idx + sw];
       if (var > 0) {
-        ivar = 1.0f / var;
-        ivarSumsSum += ivar;
+        ivar           = 1.0f / var;
+        ivarSumsSum   += ivar;
         idepthSumsSum += ivar * idepthSource[idx + sw];
         num++;
       }
 
       var = idepthVarSource[idx + sw + 1];
       if (var > 0) {
-        ivar = 1.0f / var;
-        ivarSumsSum += ivar;
+        ivar           = 1.0f / var;
+        ivarSumsSum   += ivar;
         idepthSumsSum += ivar * idepthSource[idx + sw + 1];
         num++;
       }
 
       if (num > 0) {
-        float depth = ivarSumsSum / idepthSumsSum;
-        idepthDest[idxDest] = 1.0f / depth;
+        float depth            = ivarSumsSum / idepthSumsSum;
+        idepthDest[idxDest]    = 1.0f / depth;
         idepthVarDest[idxDest] = num / ivarSumsSum;
       } else {
-        idepthDest[idxDest] = -1;
+        idepthDest[idxDest]    = -1;
         idepthVarDest[idxDest] = -1;
       }
     }
   }
 
-  data.idepthValid[level] = true;
+  data.idepthValid[level]    = true;
   data.idepthVarValid[level] = true;
 }
 

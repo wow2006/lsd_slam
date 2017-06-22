@@ -1,8 +1,9 @@
 /**
 * This file is part of LSD-SLAM.
 *
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam> 
+* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
+* of Munich)
+* For more information see <http://vision.in.tum.de/lsdslam>
 *
 * LSD-SLAM is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -19,17 +20,15 @@
 */
 
 #include "relocalizer.h"
+#include "io_wrapper/image_display.h"
 #include "model/frame.h"
 #include "tracking/se3_tracker.h"
-#include "io_wrapper/image_display.h"
 
-namespace lsd_slam
-{
+namespace lsd_slam {
 
-Relocalizer::Relocalizer(int w, int h, Eigen::Matrix3f K)
-{
-  for(int i = 0; i < RELOCALIZE_THREADS ; i++)
-          running[i] = false;
+Relocalizer::Relocalizer(int w, int h, Eigen::Matrix3f K) {
+  for (int i = 0; i < RELOCALIZE_THREADS; i++)
+    running[i] = false;
 
   this->w = w;
   this->h = h;
@@ -45,170 +44,159 @@ Relocalizer::Relocalizer(int w, int h, Eigen::Matrix3f K)
   resultFrameToKeyframe = SE3();
 }
 
-Relocalizer::~Relocalizer()
-{
-	stop();
+Relocalizer::~Relocalizer() { stop(); }
+
+void Relocalizer::stop() {
+  continueRunning = false;
+  exMutex.lock();
+  newCurrentFrameSignal.notify_all();
+  exMutex.unlock();
+  for (int i = 0; i < RELOCALIZE_THREADS; i++) {
+    relocThreads[i].join();
+    running[i] = false;
+  }
+  isRunning = false;
+
+  KFForReloc.clear();
+  CurrentRelocFrame.reset();
 }
 
-void Relocalizer::stop()
-{
-	continueRunning = false;
-	exMutex.lock();
-	newCurrentFrameSignal.notify_all();
-	exMutex.unlock();
-	for(int i=0;i<RELOCALIZE_THREADS;i++)
-	{
-		relocThreads[i].join();
-		running[i] = false;
-	}
-	isRunning = false;
+void Relocalizer::updateCurrentFrame(std::shared_ptr<Frame> currentFrame) {
+  boost::unique_lock<boost::mutex> lock(exMutex);
 
+  if (hasResult) return;
 
-	KFForReloc.clear();
-	CurrentRelocFrame.reset();
+  this->CurrentRelocFrame = currentFrame;
+  maxRelocIDX             = nextRelocIDX + KFForReloc.size();
+  newCurrentFrameSignal.notify_all();
+  lock.unlock();
+
+  if (displayDepthMap)
+    Util::displayImage("DebugWindow DEPTH 2", cv::Mat(currentFrame->height(), currentFrame->width(), CV_32F, currentFrame->image()) * (1 / 255.0f), false);
+
+  int pressedKey = Util::waitKey(1);
+  handleKey(pressedKey);
 }
 
-void Relocalizer::updateCurrentFrame(std::shared_ptr<Frame> currentFrame)
-{
-	boost::unique_lock<boost::mutex> lock(exMutex);
+void Relocalizer::start(std::vector<Frame *> &allKeyframesList) {
+  // make KFForReloc List
 
-	if(hasResult) return;
+  KFForReloc.clear();
+  for (unsigned int k = 0; k < allKeyframesList.size(); k++) {
+    // insert
+    KFForReloc.push_back(allKeyframesList[k]);
 
-	this->CurrentRelocFrame = currentFrame;
-	int doneLast = KFForReloc.size() - (maxRelocIDX - nextRelocIDX);
-	maxRelocIDX = nextRelocIDX + KFForReloc.size();
-	newCurrentFrameSignal.notify_all();
-	lock.unlock();
+    // swap with a random element
+    int ridx = rand() % (KFForReloc.size());
+    Frame *tmp = KFForReloc.back();
+    KFForReloc.back() = KFForReloc[ridx];
+    KFForReloc[ridx] = tmp;
+  }
+  nextRelocIDX = 0;
+  maxRelocIDX = KFForReloc.size();
 
-	printf("tried last on %d. set new current frame %d. trying %d to %d!\n", doneLast, currentFrame->id(), nextRelocIDX, maxRelocIDX);
+  hasResult = false;
+  continueRunning = true;
+  isRunning = true;
 
-	if (displayDepthMap)
-		Util::displayImage("DebugWindow DEPTH",
-		cv::Mat(currentFrame->height(), currentFrame->width(), CV_32F, currentFrame->image())*(1/255.0f), false);
-
-	int pressedKey = Util::waitKey(1);
-	handleKey(pressedKey);
+  // start threads
+  for (int i = 0; i < RELOCALIZE_THREADS; i++) {
+    relocThreads[i] = boost::thread(&Relocalizer::threadLoop, this, i);
+    running[i] = true;
+  }
 }
 
-void Relocalizer::start(std::vector<Frame*> &allKeyframesList)
-{
-	// make KFForReloc List
-
-	KFForReloc.clear();
-	for(unsigned int k=0;k < allKeyframesList.size(); k++)
-	{
-		// insert
-		KFForReloc.push_back(allKeyframesList[k]);
-
-		// swap with a random element
-		int ridx = rand()%(KFForReloc.size());
-		Frame* tmp = KFForReloc.back();
-		KFForReloc.back() = KFForReloc[ridx];
-		KFForReloc[ridx] = tmp;
-	}
-	nextRelocIDX=0;
-	maxRelocIDX=KFForReloc.size();
-
-	hasResult = false;
-	continueRunning = true;
-	isRunning = true;
-
-	// start threads
-	for(int i=0;i<RELOCALIZE_THREADS;i++)
-	{
-		relocThreads[i] = boost::thread(&Relocalizer::threadLoop, this, i);
-		running[i] = true;
-	}
+bool Relocalizer::waitResult(int milliseconds) {
+  boost::unique_lock<boost::mutex> lock(exMutex);
+  if (hasResult)
+    return true;
+  resultReadySignal.timed_wait(lock,
+                               boost::posix_time::milliseconds(milliseconds));
+  return hasResult;
 }
 
-bool Relocalizer::waitResult(int milliseconds)
-{
-	boost::unique_lock<boost::mutex> lock(exMutex);
-	if(hasResult) return true;
-	resultReadySignal.timed_wait(lock, boost::posix_time::milliseconds(milliseconds));
-	return hasResult;
+void Relocalizer::getResult(Frame *&out_keyframe, std::shared_ptr<Frame> &frame,
+                            int &out_successfulFrameID,
+                            SE3 &out_frameToKeyframe) {
+  boost::unique_lock<boost::mutex> lock(exMutex);
+  if (hasResult) {
+    out_keyframe = resultKF;
+    out_successfulFrameID = resultFrameID;
+    out_frameToKeyframe = resultFrameToKeyframe;
+    frame = resultRelocFrame;
+  } else {
+    out_keyframe = 0;
+    out_successfulFrameID = -1;
+    out_frameToKeyframe = SE3();
+    frame.reset();
+  }
 }
 
-void Relocalizer::getResult(Frame* &out_keyframe, std::shared_ptr<Frame> &frame, int &out_successfulFrameID, SE3 &out_frameToKeyframe)
-{
-	boost::unique_lock<boost::mutex> lock(exMutex);
-	if(hasResult)
-	{
-		out_keyframe = resultKF;
-		out_successfulFrameID = resultFrameID;
-		out_frameToKeyframe = resultFrameToKeyframe;
-		frame = resultRelocFrame;
-	}
-	else
-	{
-		out_keyframe = 0;
-		out_successfulFrameID = -1;
-		out_frameToKeyframe = SE3();
-		frame.reset();
-	}
-}
+void Relocalizer::threadLoop(int idx) {
+  if (!multiThreading && idx != 0) return;
 
-void Relocalizer::threadLoop(int idx)
-{
-  if(!multiThreading && idx != 0) return;
-
-  SE3Tracker* tracker = new SE3Tracker(w, h, K);
+  SE3Tracker *tracker = new SE3Tracker(w, h, K);
 
   boost::unique_lock<boost::mutex> lock(exMutex);
-  while(continueRunning)
-  {
+  while (continueRunning) {
     // if got something: do it (unlock in the meantime)
-    if(nextRelocIDX < maxRelocIDX && CurrentRelocFrame)
-    {
-      Frame* todo = KFForReloc[nextRelocIDX % KFForReloc.size()];
+    if (nextRelocIDX < maxRelocIDX && CurrentRelocFrame) {
+      Frame *todo = KFForReloc[nextRelocIDX % KFForReloc.size()];
       nextRelocIDX++;
-      if(todo->neighbors.size() <= 2) continue;
+      if (todo->neighbors.size() <= 2)
+        continue;
 
       std::shared_ptr<Frame> myRelocFrame = CurrentRelocFrame;
 
       lock.unlock();
 
       // initial Alignment
-      SE3 todoToFrame = tracker->trackFrameOnPermaref(todo, myRelocFrame.get(), SE3());
+      SE3 todoToFrame =
+          tracker->trackFrameOnPermaref(todo, myRelocFrame.get(), SE3());
 
       // try neighbours
-      float todoGoodVal = tracker->pointUsage * tracker->lastGoodCount / (tracker->lastGoodCount+tracker->lastBadCount);
-      if(todoGoodVal > relocalizationTH)
-      {
+      float todoGoodVal = tracker->pointUsage * tracker->lastGoodCount /
+                          (tracker->lastGoodCount + tracker->lastBadCount);
+      if (todoGoodVal > relocalizationTH) {
         int numGoodNeighbours = 0;
         int numBadNeighbours = 0;
 
         float bestNeightbourGoodVal = todoGoodVal;
         float bestNeighbourUsage = tracker->pointUsage;
-        Frame* bestKF = todo;
+        Frame *bestKF = todo;
         SE3 bestKFToFrame = todoToFrame;
-        for(Frame* nkf : todo->neighbors)
-        {
-          SE3 nkfToFrame_init = se3FromSim3((nkf->getScaledCamToWorld().inverse() * todo->getScaledCamToWorld() * sim3FromSE3(todoToFrame.inverse(), 1))).inverse();
-          SE3 nkfToFrame = tracker->trackFrameOnPermaref(nkf, myRelocFrame.get(), nkfToFrame_init);
+        for (Frame *nkf : todo->neighbors) {
+          SE3 nkfToFrame_init =
+              se3FromSim3((nkf->getScaledCamToWorld().inverse() *
+                           todo->getScaledCamToWorld() *
+                           sim3FromSE3(todoToFrame.inverse(), 1)))
+                  .inverse();
+          SE3 nkfToFrame = tracker->trackFrameOnPermaref(
+              nkf, myRelocFrame.get(), nkfToFrame_init);
 
-          float goodVal = tracker->pointUsage * tracker->lastGoodCount / (tracker->lastGoodCount+tracker->lastBadCount);
-          if(goodVal > relocalizationTH*0.8 && (nkfToFrame * nkfToFrame_init.inverse()).log().norm() < 0.1)
-                  numGoodNeighbours++;
+          float goodVal = tracker->pointUsage * tracker->lastGoodCount /
+                          (tracker->lastGoodCount + tracker->lastBadCount);
+          if (goodVal > relocalizationTH * 0.8 &&
+              (nkfToFrame * nkfToFrame_init.inverse()).log().norm() < 0.1)
+            numGoodNeighbours++;
           else
-                  numBadNeighbours++;
+            numBadNeighbours++;
 
-          if(goodVal > bestNeightbourGoodVal)
-          {
-                  bestNeightbourGoodVal = goodVal;
-                  bestKF = nkf;
-                  bestKFToFrame = nkfToFrame;
-                  bestNeighbourUsage = tracker->pointUsage;
+          if (goodVal > bestNeightbourGoodVal) {
+            bestNeightbourGoodVal = goodVal;
+            bestKF = nkf;
+            bestKFToFrame = nkfToFrame;
+            bestNeighbourUsage = tracker->pointUsage;
           }
         }
 
-        if(numGoodNeighbours > numBadNeighbours || numGoodNeighbours >= 5)
-        {
-          if(enablePrintDebugInfo && printRelocalizationInfo)
-          printf("RELOCALIZED! frame %d on %d (bestNeighbour %d): good %2.1f%%, usage %2.1f%%, GoodNeighbours %d / %d\n",
-          myRelocFrame->id(), todo->id(), bestKF->id(),
-          100*bestNeightbourGoodVal, 100*bestNeighbourUsage,
-          numGoodNeighbours, numGoodNeighbours+numBadNeighbours);
+        if (numGoodNeighbours > numBadNeighbours || numGoodNeighbours >= 5) {
+          if (enablePrintDebugInfo && printRelocalizationInfo)
+            printf("RELOCALIZED! frame %d on %d (bestNeighbour %d): good "
+                   "%2.1f%%, usage %2.1f%%, GoodNeighbours %d / %d\n",
+                   myRelocFrame->id(), todo->id(), bestKF->id(),
+                   100 * bestNeightbourGoodVal, 100 * bestNeighbourUsage,
+                   numGoodNeighbours, numGoodNeighbours + numBadNeighbours);
 
           // set everything to stop!
           continueRunning = false;
@@ -220,21 +208,18 @@ void Relocalizer::threadLoop(int idx)
           resultReadySignal.notify_all();
           hasResult = true;
           lock.unlock();
-        }
-        else
-        {
-          if(enablePrintDebugInfo && printRelocalizationInfo)
-          printf("FAILED RELOCALIZE! frame %d on %d (bestNeighbour %d): good %2.1f%%, usage %2.1f%%, GoodNeighbours %d / %d\n",
-          myRelocFrame->id(), todo->id(), bestKF->id(),
-          100*bestNeightbourGoodVal, 100*bestNeighbourUsage,
-          numGoodNeighbours, numGoodNeighbours+numBadNeighbours);
+        } else {
+          if (enablePrintDebugInfo && printRelocalizationInfo)
+            printf("FAILED RELOCALIZE! frame %d on %d (bestNeighbour %d): good "
+                   "%2.1f%%, usage %2.1f%%, GoodNeighbours %d / %d\n",
+                   myRelocFrame->id(), todo->id(), bestKF->id(),
+                   100 * bestNeightbourGoodVal, 100 * bestNeighbourUsage,
+                   numGoodNeighbours, numGoodNeighbours + numBadNeighbours);
         }
       }
 
       lock.lock();
-    }
-    else
-    {
+    } else {
       newCurrentFrameSignal.wait(lock);
     }
   }

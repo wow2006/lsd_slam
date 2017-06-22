@@ -62,7 +62,7 @@ bool printOverallTiming = false;
 bool plotTrackingIterationInfo = false;
 bool plotSim3TrackingIterationInfo = false;
 bool plotStereoImages = false;
-bool plotTracking = false;
+bool plotTracking = true;
 
 float freeDebugParam1 = 1;
 float freeDebugParam2 = 1;

@@ -57,6 +57,10 @@ public:
 	boost::shared_lock<boost::shared_mutex> keyframeLock;
 	int frameID;
 
+	/**
+	 * @brief makePointCloud
+	 * @param level
+	 */
 	void makePointCloud(int level);
 	void clearAll();
 	void invalidate();

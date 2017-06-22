@@ -64,6 +64,7 @@ void OpenCVImageStreamThread::setCalibration(std::string file) {
     if (!undistorter) {
       printf("Failed to read camera calibration from file... wrong syntax?\n");
       assert("Failed to read camera calibration from file... wrong syntax?");
+      return;
     }
 
     fx_ = undistorter->getK().at<double>(0, 0);

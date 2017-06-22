@@ -99,10 +99,15 @@ public:
   inline const Eigen::Vector4f *gradients(int level = 0);
   inline const float *maxGradients(int level = 0);
   inline bool hasIDepthBeenSet() const;
+
   inline const float *idepth(int level = 0);
+
   inline const float *idepthVar(int level = 0);
+
   inline const unsigned char *validity_reAct();
+
   inline const float *idepth_reAct();
+
   inline const float *idepthVar_reAct();
 
   inline bool *refPixelWasGood();
@@ -303,41 +308,51 @@ inline float *Frame::image(int level) {
     require(IMAGE, level);
   return data.image[level];
 }
+
 inline const Eigen::Vector4f *Frame::gradients(int level) {
   if (!data.gradientsValid[level])
     require(GRADIENTS, level);
   return data.gradients[level];
 }
+
 inline const float *Frame::maxGradients(int level) {
   if (!data.maxGradientsValid[level])
     require(MAX_GRADIENTS, level);
   return data.maxGradients[level];
 }
+
 inline bool Frame::hasIDepthBeenSet() const { return data.hasIDepthBeenSet; }
+
 inline const float *Frame::idepth(int level) {
   if (!data.hasIDepthBeenSet) {
     printfAssert("Frame::idepth(): idepth has not been set yet!");
     return nullptr;
   }
+
   if (!data.idepthValid[level])
     require(IDEPTH, level);
+
   return data.idepth[level];
 }
+
 inline const unsigned char *Frame::validity_reAct() {
-  if (!data.reActivationDataValid)
-    return 0;
+  if (!data.reActivationDataValid) return 0;
+
   return data.validity_reAct;
 }
+
 inline const float *Frame::idepth_reAct() {
-  if (!data.reActivationDataValid)
-    return 0;
+  if (!data.reActivationDataValid) return 0;
+
   return data.idepth_reAct;
 }
+
 inline const float *Frame::idepthVar_reAct() {
-  if (!data.reActivationDataValid)
-    return 0;
+  if (!data.reActivationDataValid) return 0;
+
   return data.idepthVar_reAct;
 }
+
 inline const float *Frame::idepthVar(int level) {
   if (!data.hasIDepthBeenSet) {
     printfAssert("Frame::idepthVar(): idepth has not been set yet!");
