@@ -201,9 +201,8 @@ void SlamSystem::mappingThreadLoop() {
   while (keepRunning) {
     if (!doMappingIteration()) {
       boost::unique_lock<boost::mutex> lock(unmappedTrackedFramesMutex);
-      unmappedTrackedFramesSignal.timed_wait(
-          lock, boost::posix_time::milliseconds(
-                    200)); // slight chance of deadlock otherwise
+      // slight chance of deadlock otherwise
+      unmappedTrackedFramesSignal.timed_wait(lock, boost::posix_time::milliseconds(200));
       lock.unlock();
     }
 
@@ -711,8 +710,7 @@ void SlamSystem::takeRelocalizeResult() {
 }
 
 bool SlamSystem::doMappingIteration() {
-  if (currentKeyFrame == 0)
-    return false;
+  if (currentKeyFrame == 0) return false;
 
   if (!doMapping && currentKeyFrame->idxInKeyframes < 0) {
     if (currentKeyFrame->numMappedOnThisTotal >= MIN_NUM_MAPPED)
