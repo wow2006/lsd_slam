@@ -33,10 +33,12 @@ auto getFiles(const std::string& _dir) {
             std::copy(fs::directory_iterator(imagesPath),
                       fs::directory_iterator(),
                       std::back_inserter(images));
-            std::sort(std::begin(images), std::end(images),
+            std::sort(std::begin(images), std::end(images));
+            /*
                       [](fs::path& it1, fs::path& it2) {
                       return std::stoi(it1.stem().string()) < std::stoi(it2.stem().string());
                       });
+                      */
             output.resize(images.size());
             std::transform(std::begin(images), std::end(images), std::begin(output),
                     [](const fs::path& _path) { return _path.string(); });
@@ -70,16 +72,20 @@ auto parseArgs(int argc, char** argv) {
   desc.add_options()
       ("help", "")
       ("input,i", po::value<std::string>(&inputFile)->required(), "")
-      ("output,o", po::value<std::string>(&outputFile)->required(), "")
       ("intrinsic,k", po::value<std::string>(&intrinsicFile)->required(), "");
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
+  try {
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
 
-  if(vm.count("help")) {
-      std::cerr << desc << '\n';
-      std::exit(-1);
+    if(vm.count("help")) {
+        std::cerr << desc << '\n';
+        std::exit(0);
+    }
+  } catch (...) {
+    std::cerr << desc << '\n';
+    std::exit(-1);
   }
 
   return std::vector<std::string> {inputFile, outputFile, intrinsicFile};
