@@ -33,7 +33,7 @@ Thus, it needs c++11 supported compiler to build the code from source.
     sudo ninja install
 
 # Building
-    git clone https://github.com/wow2006/lsd_slam.git
+    git clone --recursive https://github.com/wow2006/lsd_slam.git
     chmod +x build.sh
     ./build.sh
 
