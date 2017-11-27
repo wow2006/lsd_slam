@@ -27,6 +27,7 @@ Thus, it needs c++11 supported compiler to build the code from source.
     # Install g2o
     git clone https://github.com/RainerKuemmerle/g2o.git
     cd g2o
+    git checkout tags/20170730_git
     mkdir build
     cd build
     cmake -G Ninja ..
