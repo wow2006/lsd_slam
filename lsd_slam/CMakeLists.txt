@@ -1,4 +1,4 @@
-set(lsd_slam_src live_slam_wrapper.cc slam_system.cc)
+set(lsd_slam_src live_slam_wrapper.cc slam_system.cpp)
 
 # adding depth_estimation dir
 list(APPEND lsd_slam_src
@@ -36,26 +36,42 @@ list(APPEND lsd_slam_src
 
 add_library(lsd_slam ${lsd_slam_src})
 
-target_include_directories(lsd_slam PUBLIC
-    "${CMAKE_CURRENT_LIST_DIR}"
-    "${EIGEN3_INCLUDE_DIR}"
-    "${CSPARSE_INCLUDE_DIR}"
-    "${Sophus_INCLUDE_DIR}")
+target_include_directories(
+  lsd_slam
+  PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}
+  SYSTEM PUBLIC
+  ${EIGEN3_INCLUDE_DIR}
+  ${CSPARSE_INCLUDE_DIR}
+  ${Sophus_INCLUDE_DIR}
+)
 
-target_link_libraries(lsd_slam      PUBLIC
-    ${G2O_SOLVER_CHOLMOD}
-    ${G2O_SOLVER_CSPARSE}
-    ${G2O_SOLVER_CSPARSE_EXTENSION}
-    ${G2O_SOLVER_DENSE}
-    ${G2O_SOLVER_EIGEN}
-    ${G2O_TYPES_DATA}
-    ${G2O_TYPES_ICP}
-    ${G2O_STUFF_LIBRARY}
-    ${G2O_CORE_LIBRARY}
+target_link_libraries(lsd_slam
+  PUBLIC
+  ${G2O_SOLVER_CHOLMOD}
+  ${G2O_SOLVER_CSPARSE}
+  ${G2O_SOLVER_CSPARSE_EXTENSION}
+  ${G2O_SOLVER_DENSE}
+  ${G2O_SOLVER_EIGEN}
+  ${G2O_TYPES_DATA}
+  ${G2O_TYPES_ICP}
+  ${G2O_STUFF_LIBRARY}
+  ${G2O_CORE_LIBRARY}
 
-    ${OpenCV_LIBRARIES}
-    ${CSPARSE_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT}
-    ${Boost_LIBRARIES})
+  ${OpenCV_LIBRARIES}
+  ${CSPARSE_LIBRARY}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${Boost_LIBRARIES}
+)
 
-set_target_properties(lsd_slam PROPERTIES CXX_STANDARD 14)
+set_target_properties(
+  lsd_slam
+  PROPERTIES
+  CXX_STANDARD 14
+)
+
+target_compile_options(
+  lsd_slam
+  PUBLIC
+  -Wno-c++98-compat
+)

@@ -24,7 +24,7 @@
 #include "util/sophus_util.h"
 #include <vector>
 
-#include "slam_system.h"
+#include "slam_system.hpp"
 
 #include "io_wrapper/image_display.h"
 #include "io_wrapper/input_image_stream.h"

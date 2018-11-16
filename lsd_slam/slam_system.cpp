@@ -19,7 +19,7 @@
 * along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "slam_system.h"
+#include "slam_system.hpp"
 
 #include "depth_estimation/depth_map.h"
 #include "global_mapping/g2o_type_sim3_sophus.h"
