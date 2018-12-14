@@ -33,7 +33,8 @@
 #include <Eigen/src/Geometry/Quaternion.h>
 
 #include <iostream>
-#include <opencv/highgui.h>
+#include <opencv2/highgui.hpp>
+
 
 namespace lsd_slam {
 
@@ -99,7 +100,7 @@ void LiveSLAMWrapper::Loop() {
     // process image
     Util::displayImage("MyVideo", image.data);
     newImageCallback(image.data, image.timestamp);
-    auto key = cvWaitKey(10); // Capture Keyboard stroke
+    auto key = cv::waitKey(10); // Capture Keyboard stroke
     if (char(key) == 27) {
       break; // If you hit ESC key loop will break.
     }
@@ -111,10 +112,11 @@ void LiveSLAMWrapper::newImageCallback(const cv::Mat &img, Timestamp imgTime) {
 
   // Convert image to grayscale, if necessary
   cv::Mat grayImg;
-  if (img.channels() == 1)
+  if (img.channels() == 1) {
     grayImg = img;
-  else
-    cvtColor(img, grayImg, CV_RGB2GRAY);
+  } else {
+    cv::cvtColor(img, grayImg, cv::COLOR_RGB2GRAY);
+  }
 
   // Assert that we work with 8 bit images
   assert(grayImg.elemSize() == 1);

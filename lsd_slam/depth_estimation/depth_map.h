@@ -29,15 +29,13 @@
 
 
 
-namespace lsd_slam
-{
-
-typedef std::chrono::high_resolution_clock::time_point timepoint_t;
+namespace lsd_slam {
+using timepoint_t = std::chrono::high_resolution_clock::time_point;
 
 class DepthMapPixelHypothesis;
 class Frame;
 class KeyFrameGraph;
-typedef time_t timeval;
+using timeval = time_t;
 
 
 /**
@@ -48,8 +46,11 @@ class DepthMap
 {
 public:
 	DepthMap(int w, int h, const Eigen::Matrix3f& K);
+
 	DepthMap(const DepthMap&) = delete;
+
 	DepthMap& operator=(const DepthMap&) = delete;
+
 	~DepthMap();
 
 	/** Resets everything. */
@@ -71,6 +72,7 @@ public:
 	void finalizeKeyFrame();
 
 	void invalidate();
+
 	inline bool isValid() {return activeKeyFrame!=0;};
 
 	int debugPlotDepthMap();
@@ -82,11 +84,13 @@ public:
 	cv::Mat debugImageDepth;
 
 	void initializeFromGTDepth(Frame* new_frame);
+
 	void initializeRandomly(Frame* new_frame);
 
 	void setFromExistingKF(Frame* kf);
 
 	void addTimingSample();
+
 	float msUpdate, msCreate, msFinalize;
 	float msObserve, msRegularize, msPropagate, msFillHoles, msSetDepth;
 	int nUpdate, nCreate, nFinalize;
@@ -94,8 +98,6 @@ public:
 	timepoint_t lastHzUpdate;
 	float nAvgUpdate, nAvgCreate, nAvgFinalize;
 	float nAvgObserve, nAvgRegularize, nAvgPropagate, nAvgFillHoles, nAvgSetDepth;
-
-
 
 	// pointer to global keyframe graph
 	IndexThreadReduce threadReducer;
@@ -112,22 +114,28 @@ private:
 	// these are just copies of the pointers given to this function, for convenience.
 	// these are NOT managed by this object!
 	Frame* activeKeyFrame;
+
 	boost::shared_lock<boost::shared_mutex> activeKeyFramelock;
+
 	const float* activeKeyFrameImageData;
+
 	bool activeKeyFrameIsReactivated;
 
 	Frame* oldest_referenceFrame;
+
 	Frame* newest_referenceFrame;
+
 	std::vector<Frame*> referenceFrameByID;
+
 	int referenceFrameByID_offset;
 
 	// ============= internally used buffers for intermediate calculations etc. =============
 	// for internal depth tracking, their memory is managed (created & deleted) by this object.
 	DepthMapPixelHypothesis* otherDepthMap;
-	DepthMapPixelHypothesis* currentDepthMap;
-	int* validityIntegralBuffer;
 
-	
+	DepthMapPixelHypothesis* currentDepthMap;
+
+	int* validityIntegralBuffer;
 
 	// ============ internal functions ==================================================
 	// does the line-stereo seeking.

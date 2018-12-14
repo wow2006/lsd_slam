@@ -10,9 +10,18 @@ find_package(G2O     REQUIRED)
 find_package(OpenCV  REQUIRED)
 find_package(Eigen3  REQUIRED)
 find_package(Sophus  REQUIRED)
+
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost   REQUIRED
-    COMPONENTS date_time filesystem system thread program_options)
+find_package(
+  Boost
+  REQUIRED
+  COMPONENTS
+  date_time
+  filesystem
+  system
+  thread
+  program_options
+)
 
 # Add lsd_slam library
 add_subdirectory(lsd_slam)

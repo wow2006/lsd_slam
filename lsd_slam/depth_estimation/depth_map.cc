@@ -24,8 +24,9 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <cstdio>
+
 #include <opencv2/imgproc/imgproc.hpp>
-#include <stdio.h>
 
 #include "depth_estimation/depth_map_pixel_hypothesis.h"
 #include "global_mapping/key_frame_graph.h"
@@ -75,8 +76,7 @@ DepthMap::DepthMap(int w, int h, const Eigen::Matrix3f &K) {
   nUpdate = nCreate = nFinalize = 0;
   nObserve = nRegularize = nPropagate = nFillHoles = nSetDepth = 0;
   nAvgUpdate = nAvgCreate = nAvgFinalize = 0;
-  nAvgObserve = nAvgRegularize = nAvgPropagate = nAvgFillHoles = nAvgSetDepth =
-      0;
+  nAvgObserve = nAvgRegularize = nAvgPropagate = nAvgFillHoles = nAvgSetDepth = 0;
 }
 
 DepthMap::~DepthMap() {
@@ -882,7 +882,7 @@ void DepthMap::initializeRandomly(Frame *new_frame) {
     for (int x = 1; x < width - 1; x++) {
       if (maxGradients[x + y * width] > MIN_ABS_GRAD_CREATE) {
         // Get random depth
-        float idepth = 0.5f + 1.0f * ((rand() % 100001) / 100000.0f);
+        const float idepth = 0.5f + 1.0f * ((rand() % 100001) / 100000.0f);
         // set currentDepth to random value
         currentDepthMap[x + y * width] =
             DepthMapPixelHypothesis(idepth, idepth, VAR_RANDOM_INIT_INITIAL,
@@ -1066,7 +1066,7 @@ void DepthMap::updateKeyframe(
                           CV_32F, const_cast<float *>(activeKeyFrameImageData));
     keyFrameImage.convertTo(debugImageHypothesisHandling, CV_8UC1);
     cv::cvtColor(debugImageHypothesisHandling, debugImageHypothesisHandling,
-                 CV_GRAY2RGB);
+        cv::COLOR_GRAY2RGB);
 
     cv::Mat oldest_refImage(
         oldest_referenceFrame->height(), oldest_referenceFrame->width(), CV_32F,
@@ -1076,7 +1076,8 @@ void DepthMap::updateKeyframe(
         const_cast<float *>(newest_referenceFrame->image(0)));
     cv::Mat rfimg = 0.5f * oldest_refImage + 0.5f * newest_refImage;
     rfimg.convertTo(debugImageStereoLines, CV_8UC1);
-    cv::cvtColor(debugImageStereoLines, debugImageStereoLines, CV_GRAY2RGB);
+    cv::cvtColor(debugImageStereoLines, debugImageStereoLines,
+        cv::COLOR_GRAY2RGB);
   }
 
   timepoint_t tv_start, tv_end;
@@ -1217,7 +1218,8 @@ void DepthMap::createKeyFrame(Frame *new_keyframe) {
                           const_cast<float *>(new_keyframe->image(0)));
     keyFrameImage.convertTo(debugImageHypothesisPropagation, CV_8UC1);
     cv::cvtColor(debugImageHypothesisPropagation,
-                 debugImageHypothesisPropagation, CV_GRAY2RGB);
+                 debugImageHypothesisPropagation,
+                 cv::COLOR_GRAY2RGB);
   }
 
   SE3 oldToNew_SE3 =
@@ -1433,7 +1435,7 @@ int DepthMap::debugPlotDepthMap() {
   cv::Mat keyFrameImage(activeKeyFrame->height(), activeKeyFrame->width(),
                         CV_32F, const_cast<float *>(activeKeyFrameImageData));
   keyFrameImage.convertTo(debugImageDepth, CV_8UC1);
-  cv::cvtColor(debugImageDepth, debugImageDepth, CV_GRAY2RGB);
+  cv::cvtColor(debugImageDepth, debugImageDepth, cv::COLOR_GRAY2RGB);
 
   // debug plot & publish sparse version?
   int refID = referenceFrameByID_offset;

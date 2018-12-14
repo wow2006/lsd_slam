@@ -45,12 +45,13 @@ class KeyFrameGraph;
  * ATTENTION: as the level zero point cloud is not used for tracking, it is not
  * fully calculated. Only the weights are valid on this level!
  */
-class TrackingReference
-{
+class TrackingReference {
 public:
 	/** Creates an empty TrackingReference with optional preallocation per level. */
 	TrackingReference();
+
 	~TrackingReference();
+
 	void importFrame(Frame* source);
 
 	Frame* keyframe;
@@ -62,18 +63,22 @@ public:
 	 * @param level
 	 */
 	void makePointCloud(int level);
+
 	void clearAll();
+
 	void invalidate();
-	Eigen::Vector3f* posData[PYRAMID_LEVELS];	// (x,y,z)
-	Eigen::Vector2f* gradData[PYRAMID_LEVELS];	// (dx, dy)
+
+	Eigen::Vector3f* posData[PYRAMID_LEVELS];	        // (x,y,z)
+	Eigen::Vector2f* gradData[PYRAMID_LEVELS];	      // (dx, dy)
 	Eigen::Vector2f* colorAndVarData[PYRAMID_LEVELS];	// (I, Var)
-	int* pointPosInXYGrid[PYRAMID_LEVELS];	// x + y*width
+	int* pointPosInXYGrid[PYRAMID_LEVELS];	          // x + y*width
 	int numData[PYRAMID_LEVELS];
 
 private:
 	int wh_allocated;
 	boost::mutex accessMutex;
 	void releaseAll();
+
 };
 }
  

@@ -27,8 +27,7 @@
 #include "io_wrapper/timestamped_object.h"
 
 #include "util/undistorter.h"
-#include <cv.h>
-#include <highgui.h>
+#include <opencv2/opencv.hpp>
 
 namespace lsd_slam {
 

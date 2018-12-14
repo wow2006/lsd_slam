@@ -197,10 +197,10 @@ private:
     // ============= EXCLUSIVELY TRACKING THREAD (+ init) ===============
     TrackingReference* trackingReference;  // tracking reference for current
                                            // keyframe. only used by tracking.
-    SE3Tracker* tracker;
+    SE3Tracker* m_pTracker = nullptr;
 
     // ============= EXCLUSIVELY MAPPING THREAD (+ init) =============
-    DepthMap* map;
+    DepthMap* m_pMap = nullptr;
     TrackingReference* mappingTrackingReference;
 
     // during re-localization used
@@ -261,7 +261,7 @@ private:
                                          // a keyframe alive until it is
                                          // deleted. ONLY accessed whithin
                                          // currentKeyFrameMutex lock.
-    boost::mutex currentKeyFrameMutex;
+    boost::mutex mCurrentKeyFrameMutex;
 
     // threads
     boost::thread thread_mapping;

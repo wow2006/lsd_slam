@@ -55,7 +55,7 @@ bool printConstraintSearchInfo = false;
 bool printOptimizationInfo = false;
 bool printRelocalizationInfo = false;
 
-bool printThreadingInfo = false;
+bool printThreadingInfo = true;
 bool printMappingTiming = false;
 bool printOverallTiming = false;
 

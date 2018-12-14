@@ -64,15 +64,18 @@ void Relocalizer::stop() {
 void Relocalizer::updateCurrentFrame(std::shared_ptr<Frame> currentFrame) {
   boost::unique_lock<boost::mutex> lock(exMutex);
 
-  if (hasResult) return;
+  if(hasResult) {
+    return;
+  }
 
   this->CurrentRelocFrame = currentFrame;
   maxRelocIDX             = nextRelocIDX + KFForReloc.size();
   newCurrentFrameSignal.notify_all();
   lock.unlock();
 
-  if (displayDepthMap)
+  if (displayDepthMap) {
     Util::displayImage("DebugWindow DEPTH 2", cv::Mat(currentFrame->height(), currentFrame->width(), CV_32F, currentFrame->image()) * (1 / 255.0f), false);
+  }
 
   int pressedKey = Util::waitKey(1);
   handleKey(pressedKey);
