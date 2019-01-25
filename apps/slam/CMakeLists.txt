@@ -1,5 +1,5 @@
 # Add apps
-add_executable(sample_app sample_app.cc)# DebugOutput3DWrapper.cpp)
+add_executable(sample_app sample_app.cpp)# DebugOutput3DWrapper.cpp)
 target_link_libraries(sample_app lsd_slam)
 
 #add_executable(main_on_images main_on_images.cc DebugOutput3DWrapper.cpp)
