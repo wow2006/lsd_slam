@@ -1,25 +1,25 @@
 /**
-* This file is part of LSD-SLAM.
-*
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
-* of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam>
-*
-* LSD-SLAM is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* LSD-SLAM is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of LSD-SLAM.
+ *
+ * Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical
+ * University of Munich) For more information see
+ * <http://vision.in.tum.de/lsdslam>
+ *
+ * LSD-SLAM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LSD-SLAM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "tracking/tracking_reference.h"
+#include "tracking/tracking_reference.hpp"
 #include "depth_estimation/depth_map_pixel_hypothesis.h"
 #include "global_mapping/key_frame_graph.h"
 #include "io_wrapper/image_display.h"
@@ -33,11 +33,11 @@ TrackingReference::TrackingReference() {
   keyframe = 0;
   wh_allocated = 0;
   for (int level = 0; level < PYRAMID_LEVELS; ++level) {
-    posData[level] = nullptr;
-    gradData[level] = nullptr;
-    colorAndVarData[level] = nullptr;
+    posData[level]          = nullptr;
+    gradData[level]         = nullptr;
+    colorAndVarData[level]  = nullptr;
     pointPosInXYGrid[level] = nullptr;
-    numData[level] = 0;
+    numData[level]          = 0;
   }
 }
 
@@ -83,8 +83,9 @@ void TrackingReference::importFrame(Frame *sourceKF) {
 }
 
 void TrackingReference::invalidate() {
-  if (keyframe != 0)
+  if(keyframe != 0) {
     keyframeLock.unlock();
+  }
   keyframe = 0;
 }
 
@@ -93,7 +94,9 @@ void TrackingReference::makePointCloud(int level) {
   boost::unique_lock<boost::mutex> lock(accessMutex);
 
   // already exists.
-  if (numData[level] > 0) return;
+  if(numData[level] > 0) {
+    return;
+  }
 
   int w = keyframe->width(level);
   int h = keyframe->height(level);
@@ -105,9 +108,9 @@ void TrackingReference::makePointCloud(int level) {
   float cyInvLevel = keyframe->cyInv(level);
 
   // Get Depth information
-  const float *pyrIdepthSource         = keyframe->idepth(level);
-  const float *pyrIdepthVarSource      = keyframe->idepthVar(level);
-  const float *pyrColorSource          = keyframe->image(level);
+  const float *pyrIdepthSource = keyframe->idepth(level);
+  const float *pyrIdepthVarSource = keyframe->idepthVar(level);
+  const float *pyrColorSource = keyframe->image(level);
   const Eigen::Vector4f *pyrGradSource = keyframe->gradients(level);
 
   if (posData[level] == nullptr)
@@ -119,9 +122,9 @@ void TrackingReference::makePointCloud(int level) {
   if (colorAndVarData[level] == nullptr)
     colorAndVarData[level] = new Eigen::Vector2f[w * h];
 
-  Eigen::Vector3f *posDataPT         = posData[level];
-  int *idxPT                         = pointPosInXYGrid[level];
-  Eigen::Vector2f *gradDataPT        = gradData[level];
+  Eigen::Vector3f *posDataPT = posData[level];
+  int *idxPT = pointPosInXYGrid[level];
+  Eigen::Vector2f *gradDataPT = gradData[level];
   Eigen::Vector2f *colorAndVarDataPT = colorAndVarData[level];
 
   for (int x = 1; x < w - 1; x++)
@@ -134,9 +137,10 @@ void TrackingReference::makePointCloud(int level) {
       *posDataPT = (1.0f / pyrIdepthSource[idx]) *
                    Eigen::Vector3f(fxInvLevel * x + cxInvLevel,
                                    fyInvLevel * y + cyInvLevel, 1);
-      *gradDataPT        = pyrGradSource[idx].head<2>();
-      *colorAndVarDataPT = Eigen::Vector2f(pyrColorSource[idx], pyrIdepthVarSource[idx]);
-      *idxPT             = idx;
+      *gradDataPT = pyrGradSource[idx].head<2>();
+      *colorAndVarDataPT =
+          Eigen::Vector2f(pyrColorSource[idx], pyrIdepthVarSource[idx]);
+      *idxPT = idx;
 
       posDataPT++;
       gradDataPT++;
@@ -146,4 +150,4 @@ void TrackingReference::makePointCloud(int level) {
 
   numData[level] = posDataPT - posData[level];
 }
-}
+} // namespace lsd_slam

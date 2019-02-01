@@ -22,7 +22,7 @@
 #include "model/frame.h"
 #include "depth_estimation/depth_map_pixel_hypothesis.h"
 #include "model/frame_memory.h"
-#include "tracking/tracking_reference.h"
+#include "tracking/tracking_reference.hpp"
 
 namespace lsd_slam {
 

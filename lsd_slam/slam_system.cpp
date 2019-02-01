@@ -1,23 +1,23 @@
 /**
-* This file is part of LSD-SLAM.
-*
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
-* of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam>
-*
-* LSD-SLAM is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* LSD-SLAM is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of LSD-SLAM.
+ *
+ * Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical
+ * University of Munich) For more information see
+ * <http://vision.in.tum.de/lsdslam>
+ *
+ * LSD-SLAM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LSD-SLAM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "slam_system.hpp"
 
@@ -32,7 +32,7 @@
 #include "model/frame_memory.h"
 #include "tracking/se3_tracker.h"
 #include "tracking/sim3_tracker.h"
-#include "tracking/tracking_reference.h"
+#include "tracking/tracking_reference.hpp"
 #include "util/global_funcs.h"
 #include <g2o/core/robust_kernel_impl.h>
 
@@ -63,15 +63,15 @@ SlamSystem::SlamSystem(int w, int h, Eigen::Matrix3f K, bool enableSLAM)
     assert(false);
   }
 
-  this->width    = w;
-  this->height   = h;
-  this->K        = K;
+  this->width = w;
+  this->height = h;
+  this->K = K;
   trackingIsGood = true;
 
-  currentKeyFrame                = nullptr;
+  currentKeyFrame = nullptr;
   trackingReferenceFrameSharedPT = nullptr;
-  keyFrameGraph                  = new KeyFrameGraph();
-  createNewKeyFrame              = false;
+  keyFrameGraph = new KeyFrameGraph();
+  createNewKeyFrame = false;
 
   m_pMap = new DepthMap(w, h, K);
 
@@ -102,9 +102,9 @@ SlamSystem::SlamSystem(int w, int h, Eigen::Matrix3f K, bool enableSLAM)
 
   outputWrapper = 0;
 
-  keepRunning = true;
-  doFinalOptimization = false;
-  depthMapScreenshotFlag = false;
+  keepRunning                = true;
+  doFinalOptimization        = false;
+  depthMapScreenshotFlag     = false;
   lastTrackingClosenessScore = 0;
 
   thread_mapping = boost::thread(&SlamSystem::mappingThreadLoop, this);
@@ -202,7 +202,8 @@ void SlamSystem::mappingThreadLoop() {
     if (!doMappingIteration()) {
       boost::unique_lock<boost::mutex> lock(unmappedTrackedFramesMutex);
       // slight chance of deadlock otherwise
-      unmappedTrackedFramesSignal.timed_wait(lock, boost::posix_time::milliseconds(200));
+      unmappedTrackedFramesSignal.timed_wait(
+          lock, boost::posix_time::milliseconds(200));
       lock.unlock();
     }
 
@@ -305,10 +306,9 @@ void SlamSystem::constraintSearchThreadLoop() {
       tv_end = std::chrono::high_resolution_clock::now();
       msFindConstraintsItaration =
           0.9 * msFindConstraintsItaration +
-          0.1 *
-              std::chrono::duration_cast<std::chrono::milliseconds>(tv_end -
-                                                                    tv_start)
-                  .count();
+          0.1 * std::chrono::duration_cast<std::chrono::milliseconds>(tv_end -
+                                                                      tv_start)
+                    .count();
       nFindConstraintsItaration++;
 
       FrameMemory::getInstance().pruneActiveFrames();
@@ -428,7 +428,8 @@ void SlamSystem::discardCurrentKeyframe() {
   keyFrameGraph->idToKeyFrameMutex.unlock();
 }
 
-void SlamSystem::createNewCurrentKeyframe(std::shared_ptr<Frame> newKeyframeCandidate) {
+void SlamSystem::createNewCurrentKeyframe(
+    std::shared_ptr<Frame> newKeyframeCandidate) {
   if (enablePrintDebugInfo && printThreadingInfo)
     printf("CREATE NEW KF %d from %d\n", newKeyframeCandidate->id(),
            currentKeyFrame->id());
@@ -490,10 +491,9 @@ void SlamSystem::changeKeyframe(bool noCreate, bool force, float maxScore) {
     tv_end = std::chrono::high_resolution_clock::now();
     msFindReferences =
         0.9 * msFindReferences +
-        0.1 *
-            std::chrono::duration_cast<std::chrono::milliseconds>(tv_end -
-                                                                  tv_start)
-                .count();
+        0.1 * std::chrono::duration_cast<std::chrono::milliseconds>(tv_end -
+                                                                    tv_start)
+                  .count();
     nFindReferences++;
   }
 
@@ -620,8 +620,8 @@ void SlamSystem::addTimingSamples() {
              "%3.1fms (%.1fHz); Opt: %3.1fms (%.1fHz); FindConst: %3.1fms "
              "(%.1fHz);\n",
              m_pMap->msUpdate, m_pMap->nAvgUpdate, msTrackFrame, nAvgTrackFrame,
-             m_pMap->msCreate + m_pMap->msFinalize, m_pMap->nAvgCreate, msFindReferences,
-             nAvgFindReferences,
+             m_pMap->msCreate + m_pMap->msFinalize, m_pMap->nAvgCreate,
+             msFindReferences, nAvgFindReferences,
              trackableKeyFrameSearch != 0
                  ? trackableKeyFrameSearch->msTrackPermaRef
                  : 0,
@@ -688,7 +688,8 @@ void SlamSystem::takeRelocalizeResult() {
   trackingReferenceFrameSharedPT = currentKeyFrame;
   mCurrentKeyFrameMutex.unlock();
 
-  m_pTracker->trackFrame(trackingReference, succFrame.get(), succFrameToKF_init);
+  m_pTracker->trackFrame(trackingReference, succFrame.get(),
+                         succFrameToKF_init);
 
   if (!m_pTracker->trackingWasGood ||
       m_pTracker->lastGoodCount /
@@ -800,7 +801,8 @@ bool SlamSystem::doMappingIteration() {
   }
 }
 
-void SlamSystem::gtDepthInit(uchar *image, float *depth, double timeStamp, int id) {
+void SlamSystem::gtDepthInit(uchar *image, float *depth, double timeStamp,
+                             int id) {
   printf("Doing GT initialization!\n");
 
   mCurrentKeyFrameMutex.lock();
@@ -828,8 +830,9 @@ void SlamSystem::gtDepthInit(uchar *image, float *depth, double timeStamp, int i
 void SlamSystem::randomInit(uchar *image, double timeStamp, int id) {
   std::cout << "Doing Random initialization!\n";
 
-  if(!doMapping) {
-    std::cerr << "WARNING: mapping is disabled, but we just initialized... THIS WILL NOT WORK! Set doMapping to true.\n";
+  if (!doMapping) {
+    std::cerr << "WARNING: mapping is disabled, but we just initialized... "
+                 "THIS WILL NOT WORK! Set doMapping to true.\n";
   }
 
   mCurrentKeyFrameMutex.lock();
@@ -843,7 +846,8 @@ void SlamSystem::randomInit(uchar *image, double timeStamp, int id) {
 
   if (doSlam) {
     keyFrameGraph->idToKeyFrameMutex.lock();
-    keyFrameGraph->idToKeyFrame.insert(std::make_pair(currentKeyFrame->id(), currentKeyFrame));
+    keyFrameGraph->idToKeyFrame.insert(
+        std::make_pair(currentKeyFrame->id(), currentKeyFrame));
     keyFrameGraph->idToKeyFrameMutex.unlock();
   }
 
@@ -854,9 +858,11 @@ void SlamSystem::randomInit(uchar *image, double timeStamp, int id) {
   std::cout << "Done Random initialization!\n";
 }
 
-void SlamSystem::trackFrame(uchar *image, unsigned int frameID, bool blockUntilMapped, double timestamp) {
+void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
+                            bool blockUntilMapped, double timestamp) {
   // Create new frame
-  auto trackingNewFrame = std::make_shared<Frame>(frameID, width, height, K, timestamp, image);
+  auto trackingNewFrame =
+      std::make_shared<Frame>(frameID, width, height, K, timestamp, image);
 
   if (!trackingIsGood) {
     relocalizer.updateCurrentFrame(trackingNewFrame);
@@ -874,14 +880,15 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID, bool blockUntilM
       currentKeyFrame->depthHasBeenUpdatedFlag) {
     trackingReference->importFrame(currentKeyFrame.get());
     currentKeyFrame->depthHasBeenUpdatedFlag = false;
-    trackingReferenceFrameSharedPT           = currentKeyFrame;
+    trackingReferenceFrameSharedPT = currentKeyFrame;
   }
   auto trackingReferencePose = trackingReference->keyframe->pose;
   mCurrentKeyFrameMutex.unlock();
 
   // DO TRACKING & Show tracking result.
   if (enablePrintDebugInfo && printThreadingInfo) {
-    printf("TRACKING %d on %d\n", trackingNewFrame->id(), trackingReferencePose->frameID);
+    printf("TRACKING %d on %d\n", trackingNewFrame->id(),
+           trackingReferencePose->frameID);
   }
 
   poseConsistencyMutex.lock_shared();
@@ -892,18 +899,28 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID, bool blockUntilM
 
   const auto tv_start = std::chrono::high_resolution_clock::now();
 
-  SE3 newRefToFrame_poseUpdate = m_pTracker->trackFrame(trackingReference, trackingNewFrame.get(), frameToReference_initialEstimate);
+  SE3 newRefToFrame_poseUpdate =
+      m_pTracker->trackFrame(trackingReference, trackingNewFrame.get(),
+                             frameToReference_initialEstimate);
 
   auto tv_end = std::chrono::high_resolution_clock::now();
-  msTrackFrame = std::chrono::duration_cast<std::chrono::milliseconds>(tv_end - tv_start).count();
+  msTrackFrame =
+      std::chrono::duration_cast<std::chrono::milliseconds>(tv_end - tv_start)
+          .count();
   nTrackFrame++;
 
-  tracking_lastResidual     = m_pTracker->lastResidual;
-  tracking_lastUsage        = m_pTracker->pointUsage;
-  tracking_lastGoodPerBad   = m_pTracker->lastGoodCount / (m_pTracker->lastGoodCount + m_pTracker->lastBadCount);
-  tracking_lastGoodPerTotal = m_pTracker->lastGoodCount / (trackingNewFrame->width(SE3TRACKING_MIN_LEVEL)*trackingNewFrame->height(SE3TRACKING_MIN_LEVEL));
+  tracking_lastResidual = m_pTracker->lastResidual;
+  tracking_lastUsage = m_pTracker->pointUsage;
+  tracking_lastGoodPerBad =
+      m_pTracker->lastGoodCount /
+      (m_pTracker->lastGoodCount + m_pTracker->lastBadCount);
+  tracking_lastGoodPerTotal = m_pTracker->lastGoodCount /
+                              (trackingNewFrame->width(SE3TRACKING_MIN_LEVEL) *
+                               trackingNewFrame->height(SE3TRACKING_MIN_LEVEL));
 
-  if (manualTrackingLossIndicated || m_pTracker->diverged || (keyFrameGraph->keyframesAll.size() > INITIALIZATION_PHASE_COUNT && !m_pTracker->trackingWasGood)) {
+  if (manualTrackingLossIndicated || m_pTracker->diverged ||
+      (keyFrameGraph->keyframesAll.size() > INITIALIZATION_PHASE_COUNT &&
+       !m_pTracker->trackingWasGood)) {
     printf("TRACKING LOST for frame %d (%1.2f%% good Points, which is %1.2f%% "
            "of available points, %s)!\n",
            trackingNewFrame->id(), 100 * tracking_lastGoodPerTotal,
@@ -948,14 +965,19 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID, bool blockUntilM
 
   // Keyframe selection
   latestTrackedFrame = trackingNewFrame;
-  if (!my_createNewKeyframe && currentKeyFrame->numMappedOnThisTotal > MIN_NUM_MAPPED) {
-    Sophus::Vector3d dist = newRefToFrame_poseUpdate.translation() * currentKeyFrame->meanIdepth;
-    float minVal = fmin(0.2f + keyFrameGraph->keyframesAll.size() * 0.8f / INITIALIZATION_PHASE_COUNT, 1.0f);
+  if (!my_createNewKeyframe &&
+      currentKeyFrame->numMappedOnThisTotal > MIN_NUM_MAPPED) {
+    Sophus::Vector3d dist =
+        newRefToFrame_poseUpdate.translation() * currentKeyFrame->meanIdepth;
+    float minVal = fmin(0.2f + keyFrameGraph->keyframesAll.size() * 0.8f /
+                                   INITIALIZATION_PHASE_COUNT,
+                        1.0f);
 
     if (keyFrameGraph->keyframesAll.size() < INITIALIZATION_PHASE_COUNT)
       minVal *= 0.7;
 
-    lastTrackingClosenessScore = trackableKeyFrameSearch->getRefFrameScore(dist.dot(dist), m_pTracker->pointUsage);
+    lastTrackingClosenessScore = trackableKeyFrameSearch->getRefFrameScore(
+        dist.dot(dist), m_pTracker->pointUsage);
 
     if (lastTrackingClosenessScore > minVal) {
       createNewKeyFrame = true;
@@ -965,21 +987,23 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID, bool blockUntilM
                trackingNewFrame->id(),
                trackingNewFrame->getTrackingParent()->id(), dist.dot(dist),
                m_pTracker->pointUsage,
-               trackableKeyFrameSearch->getRefFrameScore(dist.dot(dist),
-                                                         m_pTracker->pointUsage));
+               trackableKeyFrameSearch->getRefFrameScore(
+                   dist.dot(dist), m_pTracker->pointUsage));
     } else {
       if (enablePrintDebugInfo && printKeyframeSelectionInfo)
         printf("SKIPPD %d on %d! dist %.3f + usage %.3f = %.3f > 1\n",
                trackingNewFrame->id(),
                trackingNewFrame->getTrackingParent()->id(), dist.dot(dist),
                m_pTracker->pointUsage,
-               trackableKeyFrameSearch->getRefFrameScore(dist.dot(dist),
-                                                         m_pTracker->pointUsage));
+               trackableKeyFrameSearch->getRefFrameScore(
+                   dist.dot(dist), m_pTracker->pointUsage));
     }
   }
 
   unmappedTrackedFramesMutex.lock();
-  if (unmappedTrackedFrames.size() < 50 || (unmappedTrackedFrames.size() < 100 && trackingNewFrame->getTrackingParent()->numMappedOnThisTotal < 10)) {
+  if (unmappedTrackedFrames.size() < 50 ||
+      (unmappedTrackedFrames.size() < 100 &&
+       trackingNewFrame->getTrackingParent()->numMappedOnThisTotal < 10)) {
     unmappedTrackedFrames.push_back(trackingNewFrame);
   }
   unmappedTrackedFramesSignal.notify_one();
@@ -1032,10 +1056,9 @@ float SlamSystem::tryTrackSim3(TrackingReference *A, TrackingReference *B,
   // Propagate uncertainty (with d(a * b) / d(b) = Adj_a) and calculate
   // Mahalanobis norm
   Matrix7x7 datimesb_db = AtoB.cast<float>().Adj();
-  Matrix7x7 diffHesse =
-      (AtoBInfo.inverse() +
-       datimesb_db * BtoAInfo.inverse() * datimesb_db.transpose())
-          .inverse();
+  Matrix7x7 diffHesse = (AtoBInfo.inverse() + datimesb_db * BtoAInfo.inverse() *
+                                                  datimesb_db.transpose())
+                            .inverse();
   Vector7 diff = (AtoB * BtoA).log().cast<float>();
 
   float reciprocalConsistency = (diffHesse * diff).dot(diff);
@@ -1159,11 +1182,10 @@ int SlamSystem::findConstraintsForNewKeyFrames(Frame *newKeyFrame,
     return 0;
   }
 
-  if (!forceParent &&
-      (newKeyFrame->lastConstraintTrackedCamToWorld *
-       newKeyFrame->getScaledCamToWorld().inverse())
-              .log()
-              .norm() < 0.01)
+  if (!forceParent && (newKeyFrame->lastConstraintTrackedCamToWorld *
+                       newKeyFrame->getScaledCamToWorld().inverse())
+                              .log()
+                              .norm() < 0.01)
     return 0;
 
   newKeyFrame->lastConstraintTrackedCamToWorld =
@@ -1521,8 +1543,9 @@ bool SlamSystem::optimizationIteration(int itsPerTry, float minChange) {
     keyFrameGraph->keyframesAll[i]->edgeErrorSum = 0;
     keyFrameGraph->keyframesAll[i]->edgesNum = 0;
 
-    if (!keyFrameGraph->keyframesAll[i]->pose->isInGraph)
+    if (!keyFrameGraph->keyframesAll[i]->pose->isInGraph) {
       continue;
+    }
 
     // get change from last optimization
     Sim3 a = keyFrameGraph->keyframesAll[i]->pose->graphVertex->estimate();
@@ -1531,8 +1554,9 @@ bool SlamSystem::optimizationIteration(int itsPerTry, float minChange) {
 
     for (int j = 0; j < 7; j++) {
       float d = fabsf((float)(diff[j]));
-      if (d > maxChange)
+      if (d > maxChange) {
         maxChange = d;
+      }
       sumChange += d;
     }
     sum += 7;
@@ -1556,22 +1580,22 @@ bool SlamSystem::optimizationIteration(int itsPerTry, float minChange) {
 
   g2oGraphAccessMutex.unlock();
 
-  if (enablePrintDebugInfo && printOptimizationInfo)
+  if (enablePrintDebugInfo && printOptimizationInfo) {
     printf("did %d optimization iterations. Max Pose Parameter Change: %f; "
            "avgChange: %f. %s\n",
            its, maxChange, sumChange / sum,
            maxChange > minChange && its == itsPerTry
                ? "continue optimizing"
                : "Waiting for addition to graph.");
+  }
 
   // gettimeofday(&tv_end, NULL);
   tv_end = std::chrono::high_resolution_clock::now();
   msOptimizationIteration =
       0.9 * msOptimizationIteration +
-      0.1 *
-          std::chrono::duration_cast<std::chrono::milliseconds>(tv_end -
-                                                                tv_start)
-              .count();
+      0.1 * std::chrono::duration_cast<std::chrono::milliseconds>(tv_end -
+                                                                  tv_start)
+                .count();
   nOptimizationIteration++;
 
   return maxChange > minChange && its == itsPerTry;
@@ -1579,18 +1603,26 @@ bool SlamSystem::optimizationIteration(int itsPerTry, float minChange) {
 
 void SlamSystem::optimizeGraph() {
   boost::unique_lock<boost::mutex> g2oLock(g2oGraphAccessMutex);
+
   keyFrameGraph->optimize(1000);
+
   g2oLock.unlock();
+
   mergeOptimizationOffset();
 }
 
 SE3 SlamSystem::getCurrentPoseEstimate() {
   SE3 camToWorld = SE3();
+
   keyFrameGraph->allFramePosesMutex.lock_shared();
-  if (keyFrameGraph->allFramePoses.size() > 0)
+
+  if (keyFrameGraph->allFramePoses.size() > 0) {
     camToWorld =
         se3FromSim3(keyFrameGraph->allFramePoses.back()->getCamToWorld());
+  }
+
   keyFrameGraph->allFramePosesMutex.unlock_shared();
+
   return camToWorld;
 }
 

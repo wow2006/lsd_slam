@@ -1,9 +1,16 @@
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 3.9)
 set(LsdSlam_PROJECT_NAME lsd_slam_and_apps)
-project(${LsdSlam_PROJECT_NAME})
+project(${LsdSlam_PROJECT_NAME} CXX)
 
 # Look for our CMake modules paths
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
+
+option(ENABLE_TESTING "" ON)
+if(ENABLE_TESTING)
+  enable_testing()
+
+  find_package(GTest REQUIRED)
+endif()
 
 find_package(CSparse REQUIRED)
 find_package(G2O     REQUIRED)
@@ -26,3 +33,5 @@ find_package(
 # Add lsd_slam library
 add_subdirectory(lsd_slam)
 add_subdirectory(apps/slam)
+
+

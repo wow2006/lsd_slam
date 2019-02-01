@@ -20,13 +20,16 @@ list(APPEND lsd_slam_src
     model/frame.cc
     model/frame_memory.cc
     model/frame_pose_struct.cc)
+
 # adding tracking dir
 list(APPEND lsd_slam_src
     tracking/least_squares.cc
     tracking/relocalizer.cc
     tracking/se3_tracker.cc
     tracking/sim3_tracker.cc
-    tracking/tracking_reference.cc)
+    tracking/tracking_reference.cpp
+)
+
 # adding util dir
 list(APPEND lsd_slam_src
     util/global_funcs.cc
@@ -75,3 +78,7 @@ target_compile_options(
   PUBLIC
   -Wno-c++98-compat
 )
+
+if(ENABLE_TESTING)
+  add_subdirectory(test)
+endif()
