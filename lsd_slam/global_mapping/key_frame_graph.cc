@@ -50,7 +50,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "util/global_funcs.h"
+#include "util/GlobalFuncs.hpp"
 #include "util/snprintf.h"
 
 namespace lsd_slam {

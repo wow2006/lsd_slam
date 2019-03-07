@@ -5,7 +5,7 @@ project(${LsdSlam_PROJECT_NAME} CXX)
 # Look for our CMake modules paths
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
-option(ENABLE_TESTING "" ON)
+option(ENABLE_TESTING "Enable Testing" ON)
 if(ENABLE_TESTING)
   enable_testing()
 

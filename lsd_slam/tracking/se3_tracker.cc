@@ -24,7 +24,7 @@
 #include "model/frame.h"
 #include "tracking/least_squares.h"
 #include "tracking/tracking_reference.hpp"
-#include "util/global_funcs.h"
+#include "util/GlobalFuncs.hpp"
 #include "util/snprintf.h"
 #include <opencv2/highgui/highgui.hpp>
 

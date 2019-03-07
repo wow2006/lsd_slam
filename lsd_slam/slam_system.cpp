@@ -33,7 +33,7 @@
 #include "tracking/se3_tracker.h"
 #include "tracking/sim3_tracker.h"
 #include "tracking/tracking_reference.hpp"
-#include "util/global_funcs.h"
+#include "util/GlobalFuncs.hpp"
 #include <g2o/core/robust_kernel_impl.h>
 
 #include "util/snprintf.h"

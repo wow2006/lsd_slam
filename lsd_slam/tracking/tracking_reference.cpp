@@ -24,7 +24,7 @@
 #include "global_mapping/key_frame_graph.h"
 #include "io_wrapper/image_display.h"
 #include "model/frame.h"
-#include "util/global_funcs.h"
+#include "util/GlobalFuncs.hpp"
 
 namespace lsd_slam {
 

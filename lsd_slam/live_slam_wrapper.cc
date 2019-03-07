@@ -29,7 +29,7 @@
 #include "io_wrapper/image_display.h"
 #include "io_wrapper/input_image_stream.h"
 #include "io_wrapper/output_3d_wrapper.h"
-#include "util/global_funcs.h"
+#include "util/GlobalFuncs.hpp"
 #include <Eigen/src/Geometry/Quaternion.h>
 
 #include <iostream>

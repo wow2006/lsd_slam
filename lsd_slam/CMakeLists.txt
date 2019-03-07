@@ -1,43 +1,40 @@
-set(lsd_slam_src live_slam_wrapper.cc slam_system.cpp)
-
-# adding depth_estimation dir
-list(APPEND lsd_slam_src
-    depth_estimation/depth_map.cc
-    depth_estimation/depth_map_pixel_hypothesis.cc)
-# adding global_mapping dir
-list(APPEND lsd_slam_src
-    global_mapping/fab_map.cc
-    global_mapping/g2o_type_sim3_sophus.cc
-    global_mapping/key_frame_graph.cc
-    global_mapping/trackable_key_frame_search.cc)
-# adding io_wrapper dir
-list(APPEND lsd_slam_src
-    io_wrapper/ImageDisplay_OpenCV.cc
-    io_wrapper/OpenCVImageStreamThread.cpp
-    io_wrapper/timestamp.cc)
-# adding model dir
-list(APPEND lsd_slam_src
-    model/frame.cc
-    model/frame_memory.cc
-    model/frame_pose_struct.cc)
-
-# adding tracking dir
-list(APPEND lsd_slam_src
-    tracking/least_squares.cc
-    tracking/relocalizer.cc
-    tracking/se3_tracker.cc
-    tracking/sim3_tracker.cc
-    tracking/tracking_reference.cpp
+set(
+  lsd_slam_src
+  live_slam_wrapper.cc
+  slam_system.cpp
+  # adding depth_estimation dir
+  depth_estimation/depth_map.cc
+  depth_estimation/depth_map_pixel_hypothesis.cc
+  # adding global_mapping dir
+  global_mapping/fab_map.cc
+  global_mapping/g2o_type_sim3_sophus.cc
+  global_mapping/key_frame_graph.cc
+  global_mapping/trackable_key_frame_search.cc
+  # adding io_wrapper dir
+  io_wrapper/ImageDisplay_OpenCV.cc
+  io_wrapper/OpenCVImageStreamThread.cpp
+  io_wrapper/timestamp.cc
+  # adding model dir
+  model/frame.cc
+  model/frame_memory.cc
+  model/frame_pose_struct.cc
+  # adding tracking dir
+  tracking/least_squares.cc
+  tracking/relocalizer.cc
+  tracking/se3_tracker.cc
+  tracking/sim3_tracker.cc
+  tracking/tracking_reference.cpp
+  # adding util dir
+  util/GlobalFuncs.cpp
+  util/settings.cc
+  util/sophus_util.cc
+  util/undistorter.cc
 )
 
-# adding util dir
-list(APPEND lsd_slam_src
-    util/global_funcs.cc
-    util/settings.cc
-    util/sophus_util.cc
-    util/undistorter.cc)
-
-add_library(lsd_slam ${lsd_slam_src})
+add_library(
+  lsd_slam
+  ${lsd_slam_src}
+)
 
 target_include_directories(
   lsd_slam
@@ -49,7 +46,8 @@ target_include_directories(
   ${Sophus_INCLUDE_DIR}
 )
 
-target_link_libraries(lsd_slam
+target_link_libraries(
+  lsd_slam
   PUBLIC
   ${G2O_SOLVER_CHOLMOD}
   ${G2O_SOLVER_CSPARSE}
