@@ -17,6 +17,7 @@ find_package(G2O     REQUIRED)
 find_package(OpenCV  REQUIRED)
 find_package(Eigen3  REQUIRED)
 find_package(Sophus  REQUIRED)
+find_package(Glog    REQUIRED)
 
 set(Boost_USE_MULTITHREADED ON)
 find_package(
