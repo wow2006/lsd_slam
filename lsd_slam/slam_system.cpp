@@ -51,6 +51,8 @@
 #include <android/log.h>
 #endif
 
+#include <glog/logging.h>
+
 #include "opencv2/opencv.hpp"
 
 using namespace lsd_slam;
@@ -887,8 +889,8 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
 
   // DO TRACKING & Show tracking result.
   if (enablePrintDebugInfo && printThreadingInfo) {
-    printf("TRACKING %d on %d\n", trackingNewFrame->id(),
-           trackingReferencePose->frameID);
+    LOG(INFO) << "TRACKING " << trackingNewFrame->id() << " on "
+      << trackingReferencePose->frameID << '\n';
   }
 
   poseConsistencyMutex.lock_shared();

@@ -44,6 +44,7 @@ target_include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${CSPARSE_INCLUDE_DIR}
   ${Sophus_INCLUDE_DIR}
+  ${GLOG_INCLUDE_DIRS}
 )
 
 target_link_libraries(
@@ -63,6 +64,7 @@ target_link_libraries(
   ${CSPARSE_LIBRARY}
   ${CMAKE_THREAD_LIBS_INIT}
   ${Boost_LIBRARIES}
+  ${GLOG_LIBRARIES}
 )
 
 set_target_properties(

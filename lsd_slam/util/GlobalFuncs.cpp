@@ -1,23 +1,23 @@
 /**
-* This file is part of LSD-SLAM.
-*
-* Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical University
-* of Munich)
-* For more information see <http://vision.in.tum.de/lsdslam>
-*
-* LSD-SLAM is free software: you can redistribute it and/or modify
-* it under the terms of the GNU General Public License as published by
-* the Free Software Foundation, either version 3 of the License, or
-* (at your option) any later version.
-*
-* LSD-SLAM is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of LSD-SLAM.
+ *
+ * Copyright 2013 Jakob Engel <engelj at in dot tum dot de> (Technical
+ * University of Munich) For more information see
+ * <http://vision.in.tum.de/lsdslam>
+ *
+ * LSD-SLAM is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LSD-SLAM is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LSD-SLAM. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "opencv2/opencv.hpp"
 
@@ -25,6 +25,11 @@
 #include "util/sophus_util.h"
 
 #include "model/frame.h"
+
+#include <glog/logging.h>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
 
 namespace lsd_slam {
 
@@ -49,10 +54,10 @@ void printMessageOnCVImage(cv::Mat &image, std::string line1,
       image.at<cv::Vec3b>(y, x) *= 0.5;
 
   cv::putText(image, line2, cv::Point(10, image.rows - 5),
-      cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(200, 200, 250), 1, 8);
+              cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(200, 200, 250), 1, 8);
 
   cv::putText(image, line1, cv::Point(10, image.rows - 18),
-      cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(200, 200, 250), 1, 8);
+              cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(200, 200, 250), 1, 8);
 }
 
 cv::Mat getDepthRainbowPlot(Frame *kf, int lvl) {
@@ -153,4 +158,75 @@ cv::Mat getVarRedGreenPlot(const float *idepthVar, const float *gray, int width,
   delete[] idepthVarExt;
   return res;
 }
+
+std::vector<std::string> getFiles(const std::string &_dir) {
+  namespace fs = boost::filesystem;
+
+  auto output = std::vector<std::string>();
+  auto imagesPath = fs::path(_dir);
+  try {
+    if (fs::exists(imagesPath) && fs::is_directory(imagesPath)) {
+      LOG(INFO) << _dir << " directory exist!\n";
+      std::vector<fs::path> images;
+      std::copy(fs::directory_iterator(imagesPath), fs::directory_iterator(),
+                std::back_inserter(images));
+      std::sort(std::begin(images), std::end(images));
+      /*
+                [](fs::path& it1, fs::path& it2) {
+                return std::stoi(it1.stem().string()) <
+         std::stoi(it2.stem().string());
+                });
+                */
+      output.resize(images.size());
+      std::transform(std::begin(images), std::end(images), std::begin(output),
+                     [](const fs::path &_path) { return _path.string(); });
+    }
+  } catch (const fs::filesystem_error &exp) {
+    LOG(ERROR) << exp.what() << '\n';
+  }
+  return output;
 }
+
+std::vector<std::string> parseArgs(int argc, char **argv) {
+  namespace po = boost::program_options;
+
+  std::string inputFile, outputFile, intrinsicFile;
+
+  po::options_description desc("LSD_SLAM input");
+  desc.add_options()("help", "")(
+      "input,i", po::value<std::string>(&inputFile)->required(), "")(
+      "intrinsic,k", po::value<std::string>(&intrinsicFile)->required(), "");
+
+  try {
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("help")) {
+      std::cerr << desc << '\n';
+      std::exit(0);
+    }
+  } catch (...) {
+    std::cerr << desc << '\n';
+    std::exit(-1);
+  }
+
+  return std::vector<std::string>{inputFile, outputFile, intrinsicFile};
+}
+
+Eigen::Matrix3f getIntrinsicMatrix(const std::string &_dir) {
+  cv::FileStorage inputFile(_dir, cv::FileStorage::READ |
+                                      cv::FileStorage::FORMAT_JSON);
+  cv::Mat opencvK;
+  inputFile["IntrinsicMatrix"] >> opencvK;
+
+  Eigen::Matrix3f K;
+  K << opencvK.at<float>(0, 0), opencvK.at<float>(0, 1),
+      opencvK.at<float>(0, 2), opencvK.at<float>(1, 0), opencvK.at<float>(1, 1),
+      opencvK.at<float>(1, 2), opencvK.at<float>(2, 0), opencvK.at<float>(2, 1),
+      opencvK.at<float>(2, 2);
+
+  return K;
+}
+
+} // namespace lsd_slam
