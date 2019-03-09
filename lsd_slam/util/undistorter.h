@@ -65,7 +65,7 @@ public:
 	 * Creates and returns an Undistorter of the type used by the given
 	 * configuration file. If the format is not recognized, returns nullptr.
 	 */
-	static Undistorter* getUndistorterForFile(const char* configFilename);
+	static std::unique_ptr<Undistorter> getUndistorterForFile(const char* configFilename);
 };
 
 class UndistorterPTAM : public Undistorter

@@ -32,7 +32,8 @@ namespace lsd_slam {
 
 Undistorter::~Undistorter() {}
 
-Undistorter *Undistorter::getUndistorterForFile(const char *configFilename) {
+std::unique_ptr<Undistorter>
+Undistorter::getUndistorterForFile(const char *configFilename) {
   std::string completeFileName = configFilename;
 
   printf("Reading Calibration from file %s", completeFileName.c_str());
@@ -67,19 +68,17 @@ Undistorter *Undistorter::getUndistorterForFile(const char *configFilename) {
   // &ic[2], &ic[3], &ic[4], &ic[5], &ic[6], &ic[7], &ic[8], &ic[9]) == 10)
   if (l2 == "<opencv_storage>") {
     printf("found OpenCV camera model, building rectifier.\n");
-    Undistorter *u = new UndistorterOpenCV(completeFileName.c_str());
+    auto u = std::make_unique<UndistorterOpenCV>(completeFileName.c_str());
     if (!u->isValid()){
-        delete u;
-        return 0;
+        return nullptr;
     }
 
     return u;
   } else {
     printf("found ATAN camera model, building rectifier.\n");
-    Undistorter *u = new UndistorterPTAM(completeFileName.c_str());
+    auto u = std::make_unique<UndistorterPTAM>(completeFileName.c_str());
     if (!u->isValid()){
-        delete u;
-        return 0;
+        return nullptr;
     }
 
     return u;

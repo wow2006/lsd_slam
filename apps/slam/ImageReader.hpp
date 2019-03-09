@@ -18,21 +18,36 @@ class ImageReader : public QObject {
 public:
   explicit ImageReader();
 
-  ~ImageReader();
+  ~ImageReader() override;
 
+  /** 
+   * @brief Initialize SlamSystem
+   * TODO:
+   *  - remove argc, argv
+   *  - remove program options with QApplication
+   * @param argc
+   * @param argv
+   * 
+   * @return initializtion successed
+   */
   bool initialize(int argc, char **argv);
 
 private:
+  /** 
+   * @brief Running Thread
+   */
   void run();
 
-
 public slots:
+  /** 
+   * @brief cleanup slot for close running thread
+   */
   void cleanup();
 
 protected:
   std::vector<std::string> m_vFiles;
 
-  lsd_slam::Undistorter *m_pUndistorter = nullptr;
+  std::unique_ptr<lsd_slam::Undistorter> m_pUndistorter;
 
   std::unique_ptr<lsd_slam::SlamSystem> m_pSystem;
 
