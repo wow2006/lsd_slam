@@ -17,6 +17,12 @@ ImageReader::ImageReader() = default;
 
 ImageReader::~ImageReader() = default;
 
+void ImageReader::setViewer(lsd_slam::Output3DWrapper *pWrapper) {
+  if(m_pSystem) {
+    m_pSystem->setVisualization(pWrapper);
+  }
+}
+
 bool ImageReader::initialize(int argc, char **argv) {
   const auto vInputFiles = lsd_slam::parseArgs(argc, argv);
 

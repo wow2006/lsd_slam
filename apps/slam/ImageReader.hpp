@@ -9,6 +9,7 @@
 namespace lsd_slam {
 class Undistorter;
 class SlamSystem;
+class Output3DWrapper;
 }
 
 namespace Application {
@@ -31,6 +32,8 @@ public:
    * @return initializtion successed
    */
   bool initialize(int argc, char **argv);
+
+  void setViewer(lsd_slam::Output3DWrapper *pWrapper);
 
 private:
   /** 

@@ -21,9 +21,10 @@ int main(int argc, char **argv) {
   auto pViewer = std::make_unique<Wrapper::Viewer>();
   pViewer->show();
 
+  pImageReader->setViewer(pViewer.get());
+
   QObject::connect(pViewer.get(), &Wrapper::Viewer::close,
                    pImageReader.get(), &Application::ImageReader::cleanup);
 
-  std::cout << "Before Exist!\n";
   return app.exec();
 }
