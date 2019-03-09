@@ -540,10 +540,12 @@ bool SlamSystem::updateKeyframe() {
     unmappedTrackedFrames.pop_front();
     unmappedTrackedFramesMutex.unlock();
 
-    if (enablePrintDebugInfo && printThreadingInfo)
-      printf("MAPPING %d on %d to %d (%d frames)\n", currentKeyFrame->id(),
-             references.front()->id(), references.back()->id(),
-             (int)references.size());
+    if (enablePrintDebugInfo && printThreadingInfo) {
+      LOG(INFO) << "MAPPING " << currentKeyFrame->id()
+                << " on " << references.front()->id()
+                << " to " << references.back()->id()
+                << "(" << references.size() << " frames)\n";
+    }
 
     m_pMap->updateKeyframe(references);
 
@@ -617,7 +619,8 @@ void SlamSystem::addTimingSamples() {
     lastHzUpdate = now;
 
     if (enablePrintDebugInfo && printOverallTiming) {
-      printf("MapIt: %3.1fms (%.1fHz); Track: %3.1fms (%.1fHz); Create: "
+      char tempBuffer[512];
+      sprintf(tempBuffer, "MapIt: %3.1fms (%.1fHz); Track: %3.1fms (%.1fHz); Create: "
              "%3.1fms (%.1fHz); FindRef: %3.1fms (%.1fHz); PermaTrk: "
              "%3.1fms (%.1fHz); Opt: %3.1fms (%.1fHz); FindConst: %3.1fms "
              "(%.1fHz);\n",
@@ -632,6 +635,7 @@ void SlamSystem::addTimingSamples() {
                  : 0,
              msOptimizationIteration, nAvgOptimizationIteration,
              msFindConstraintsItaration, nAvgFindConstraintsItaration);
+      LOG(INFO) << tempBuffer;
     }
   }
 }
@@ -862,7 +866,9 @@ void SlamSystem::randomInit(uchar *image, double timeStamp, int id) {
 
 void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
                             bool blockUntilMapped, double timestamp) {
+  // ==========================================================
   // Create new frame
+  // ==========================================================
   auto trackingNewFrame =
       std::make_shared<Frame>(frameID, width, height, K, timestamp, image);
 
@@ -884,35 +890,42 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
     currentKeyFrame->depthHasBeenUpdatedFlag = false;
     trackingReferenceFrameSharedPT = currentKeyFrame;
   }
-  auto trackingReferencePose = trackingReference->keyframe->pose;
+  const auto trackingReferencePose = trackingReference->keyframe->pose;
   mCurrentKeyFrameMutex.unlock();
 
+  // ==========================================================
   // DO TRACKING & Show tracking result.
+  // ==========================================================
   if (enablePrintDebugInfo && printThreadingInfo) {
     LOG(INFO) << "TRACKING " << trackingNewFrame->id() << " on "
       << trackingReferencePose->frameID << '\n';
   }
 
+  // ==========================================================
+  // Covert Sim3 to SE3
+  // ==========================================================
   poseConsistencyMutex.lock_shared();
-  SE3 frameToReference_initialEstimate =
+  const SE3 frameToReference_initialEstimate =
       se3FromSim3(trackingReferencePose->getCamToWorld().inverse() *
                   keyFrameGraph->allFramePoses.back()->getCamToWorld());
   poseConsistencyMutex.unlock_shared();
 
+  // Compute time in miliseconds
   const auto tv_start = std::chrono::high_resolution_clock::now();
 
-  SE3 newRefToFrame_poseUpdate =
+  const SE3 newRefToFrame_poseUpdate =
       m_pTracker->trackFrame(trackingReference, trackingNewFrame.get(),
                              frameToReference_initialEstimate);
 
-  auto tv_end = std::chrono::high_resolution_clock::now();
+  const auto tv_end = std::chrono::high_resolution_clock::now();
+
   msTrackFrame =
       std::chrono::duration_cast<std::chrono::milliseconds>(tv_end - tv_start)
           .count();
   nTrackFrame++;
 
-  tracking_lastResidual = m_pTracker->lastResidual;
-  tracking_lastUsage = m_pTracker->pointUsage;
+  tracking_lastResidual   = m_pTracker->lastResidual;
+  tracking_lastUsage      = m_pTracker->pointUsage;
   tracking_lastGoodPerBad =
       m_pTracker->lastGoodCount /
       (m_pTracker->lastGoodCount + m_pTracker->lastBadCount);
@@ -923,11 +936,14 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
   if (manualTrackingLossIndicated || m_pTracker->diverged ||
       (keyFrameGraph->keyframesAll.size() > INITIALIZATION_PHASE_COUNT &&
        !m_pTracker->trackingWasGood)) {
-    printf("TRACKING LOST for frame %d (%1.2f%% good Points, which is %1.2f%% "
+    char tempBuffer[512];
+    sprintf(tempBuffer, "TRACKING LOST for frame %d (%1.2f%% good Points, which is %1.2f%% "
            "of available points, %s)!\n",
            trackingNewFrame->id(), 100 * tracking_lastGoodPerTotal,
            100 * tracking_lastGoodPerBad,
            m_pTracker->diverged ? "DIVERGED" : "NOT DIVERGED");
+
+    LOG(ERROR) << tempBuffer;
 
     trackingReference->invalidate();
 
@@ -955,50 +971,62 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
     data[6] = m_pTracker->affineEstimation_a;
     data[7] = m_pTracker->affineEstimation_b;
 
-    if (outputWrapper)
+    if (outputWrapper) {
       outputWrapper->publishDebugInfo(data);
+    }
   }
 
   keyFrameGraph->addFrame(trackingNewFrame.get());
 
-  if (outputWrapper != 0) {
+  if (outputWrapper != nullptr) {
     outputWrapper->publishTrackedFrame(trackingNewFrame.get());
   }
 
+  // ==========================================================
   // Keyframe selection
+  // ==========================================================
   latestTrackedFrame = trackingNewFrame;
   if (!my_createNewKeyframe &&
       currentKeyFrame->numMappedOnThisTotal > MIN_NUM_MAPPED) {
-    Sophus::Vector3d dist =
+    const Sophus::Vector3d dist =
         newRefToFrame_poseUpdate.translation() * currentKeyFrame->meanIdepth;
     float minVal = fmin(0.2f + keyFrameGraph->keyframesAll.size() * 0.8f /
                                    INITIALIZATION_PHASE_COUNT,
                         1.0f);
 
-    if (keyFrameGraph->keyframesAll.size() < INITIALIZATION_PHASE_COUNT)
+    if (keyFrameGraph->keyframesAll.size() < INITIALIZATION_PHASE_COUNT) {
       minVal *= 0.7;
+    }
 
     lastTrackingClosenessScore = trackableKeyFrameSearch->getRefFrameScore(
         dist.dot(dist), m_pTracker->pointUsage);
 
     if (lastTrackingClosenessScore > minVal) {
+      // Create new key-frame
       createNewKeyFrame = true;
 
-      if (enablePrintDebugInfo && printKeyframeSelectionInfo)
-        printf("SELECT %d on %d! dist %.3f + usage %.3f = %.3f > 1\n",
+      if (enablePrintDebugInfo && printKeyframeSelectionInfo) {
+        char tempBuffer[512];
+        sprintf(tempBuffer, "SELECT %d on %d! dist %.3f + usage %.3f = %.3f > 1\n",
                trackingNewFrame->id(),
                trackingNewFrame->getTrackingParent()->id(), dist.dot(dist),
                m_pTracker->pointUsage,
                trackableKeyFrameSearch->getRefFrameScore(
                    dist.dot(dist), m_pTracker->pointUsage));
+        LOG(INFO) << tempBuffer;
+      }
     } else {
-      if (enablePrintDebugInfo && printKeyframeSelectionInfo)
-        printf("SKIPPD %d on %d! dist %.3f + usage %.3f = %.3f > 1\n",
+      // Skip this frame
+      if (enablePrintDebugInfo && printKeyframeSelectionInfo) {
+        char tempBuffer[512];
+        sprintf(tempBuffer, "SKIPPD %d on %d! dist %.3f + usage %.3f = %.3f > 1\n",
                trackingNewFrame->id(),
                trackingNewFrame->getTrackingParent()->id(), dist.dot(dist),
                m_pTracker->pointUsage,
                trackableKeyFrameSearch->getRefFrameScore(
                    dist.dot(dist), m_pTracker->pointUsage));
+        LOG(INFO) << tempBuffer;
+      }
     }
   }
 
@@ -1011,7 +1039,9 @@ void SlamSystem::trackFrame(uchar *image, unsigned int frameID,
   unmappedTrackedFramesSignal.notify_one();
   unmappedTrackedFramesMutex.unlock();
 
-  // implement blocking
+  // ==========================================================
+  // Implement Blocking
+  // ==========================================================
   if (blockUntilMapped && trackingIsGood) {
     boost::unique_lock<boost::mutex> lock(newFrameMappedMutex);
     while (unmappedTrackedFrames.size() > 0) {

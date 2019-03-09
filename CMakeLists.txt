@@ -19,14 +19,13 @@ find_package(Eigen3  REQUIRED)
 find_package(Sophus  REQUIRED)
 find_package(Glog    REQUIRED)
 
-set(Boost_USE_MULTITHREADED ON)
+find_package(QGLViewer REQUIRED)
+
 find_package(
   Boost
   REQUIRED
   COMPONENTS
-  date_time
   filesystem
-  system
   thread
   program_options
 )
