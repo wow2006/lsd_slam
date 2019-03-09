@@ -6,8 +6,7 @@ add_executable(
   sample_app.cpp
   # DebugOutput3DWrapper.cpp
   qglViewer3DWrapper.cpp
-  ImageReaders.hpp
-  ImageReaders.cpp
+  ImageReader.cpp
 )
 
 target_include_directories(

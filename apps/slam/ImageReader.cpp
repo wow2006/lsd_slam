@@ -1,7 +1,7 @@
 #include <thread>
 #include <memory>
 
-#include "ImageReaders.hpp"
+#include "ImageReader.hpp"
 #include "slam_system.hpp"
 
 #include "util/GlobalFuncs.hpp"

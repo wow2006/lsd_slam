@@ -1,7 +1,7 @@
 #include <memory>
 
 #include "qglViewer3DWrapper.hpp"
-#include "ImageReaders.hpp"
+#include "ImageReader.hpp"
 
 #include <QApplication>
 
