@@ -1,0 +1,19 @@
+language: cpp
+compiler: gcc
+dist:     trusty
+
+before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+
+install: 
+  - sudo apt-get install -qq g++-6 cmake ninja-build git
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
+  - sudo apt-get install -qq libboost-all-dev libeigen3-dev libsuitesparse-dev libopencv-dev libqglviewer-dev-qt5
+  - git clone https://github.com/RainerKuemmerle/g2o.git
+  - cd g2o && git checkout tags/20170730_git
+  - mkdir build && cd build && cmake -G Ninja .. && sudo ninja install
+
+script: 
+  - cmake -G Ninja .
+  - ninja
