@@ -24,6 +24,7 @@ target_link_libraries(
   Qt5::Widgets
   Qt5::Xml
   Qt5::OpenGL
+  OpenGL::GL
   ${QGLVIEWER_LIBRARY}
 ) 
 

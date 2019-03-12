@@ -19,6 +19,7 @@ find_package(Eigen3  REQUIRED)
 find_package(Sophus  REQUIRED)
 find_package(Glog    REQUIRED)
 
+find_package(OpenGL    REQUIRED)
 find_package(QGLViewer REQUIRED)
 
 find_package(
