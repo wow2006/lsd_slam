@@ -11,6 +11,8 @@ public:
 
   void publishKeyframe(lsd_slam::Frame* pKeyFrame) override;
 
+  void init() override;
+
   void draw() override;
 
 signals:

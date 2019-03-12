@@ -9,19 +9,22 @@ Viewer::~Viewer() {
   emit close();
 }
 
+void Viewer::init() {
+  glDisable(GL_LIGHTING);
+  glPointSize(3.0);
+  setGridIsDrawn();
+}
+
 void Viewer::publishKeyframe(lsd_slam::Frame *pKeyFrame) {
     if(pKeyFrame == nullptr) {
         return;
     }
 
-    if(pKeyFrame->hasIDepthBeenSet()) {
-        const auto pDepthBuffer = pKeyFrame->idepth(cDepthIndex);
-    }
-
-    std::cout << __PRETTY_FUNCTION__ << '\n';
+    const auto cam = pKeyFrame->getScaledCamToWorld();
 }
 
 void Viewer::draw() {
+  drawAxis();
 }
 
 } // namespace Wrapper
